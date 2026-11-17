@@ -56,7 +56,7 @@ auf Wunsch auch ausgedruckt.
 |---|---|---|---|
 | 1. Sammeln | RSS/Atom (ETag/Last-Modified, höflich gedrosselt), ICS-Kalender (14 Tage voraus) | Pi | alle 30 min |
 | 2. Volltext | Artikelseite laden, Haupttext mit **trafilatura**; Cookie-/Paywall-Seiten und verwürfelter Paywall-Text werden erkannt, dann bleibt es beim Anreißer | Pi | pro neuem Artikel |
-| 3. Anreichern | **einmal pro Artikel**: Überschrift, Unterzeile, Zusammenfassung, Ereignis in einem Satz, Themen, Wichtigkeit (strikte JSON-Schema-Ausgabe) | Jetson | sobald erreichbar |
+| 3. Anreichern | **einmal pro Artikel**: Überschrift, Unterzeile, Zusammenfassung, Ereignis in einem Satz, Themen, Wichtigkeit (strikte JSON-Schema-Ausgabe). Zuerst kommen die Artikel, die ein Leser wahrscheinlich gedruckt bekommt (gleiche Bewertung wie bei der Auswahl), danach der Rest. | Jetson | sobald erreichbar |
 | 4. Geschichten | Kandidaten über Embedding-Ähnlichkeit (ohne Embeddings: Themen-Überlappung), das LLM wählt eine laufende Geschichte oder „neu“ | Jetson | sobald erreichbar |
 | 5. Auswahl | Je Leser: Interessen × Themen, Wichtigkeit, Aktualität, Quellenvielfalt, eine Meldung pro Geschichte, nichts doppelt aus den letzten Ausgaben | Pi (ohne LLM) | vor jeder Ausgabe |
 | 6. Setzen | Ausgabe-JSON → Typst → PDF (PDF/UA-1); die Weboberfläche zeigt dasselbe JSON als barrierefreie HTML-Fassung | Pi | vor jeder Ausgabe |
@@ -117,6 +117,7 @@ HTML-Fassung kennen nur dieses Format. Referenz ist [`layout/sample/edition.json
 - **Stile:** `klassisch` (Chomsky-Titel, Bebas-Neue-Überschriften, Papierton, Doppellinien, Fraktur-Initialen),
   `feuilleton` (Playfair Display, ruhiger) und `grossdruck` (13 pt, zwei Spalten, dunklerer Nebentext).
   Weitere Stile sind Einträge in `layout/themes.typ`.
+- **Spalten:** Die letzte Seite wird ausgeglichen gesetzt, Rubrik- und Artikelköpfe bleiben beim Text.
 - **Papierton** (`paper_tint`) ist für Bildschirme gedacht und lässt sich zum Ausdrucken abschalten.
 - **Farben** halten Kontrast ≥ 4,5 : 1, im Druck und in beiden Farbschemata der Weboberfläche.
 - **Weboberfläche:** SvelteKit (Svelte 5), statisch gebaut und vom `app`-Container ausgeliefert. Mobile-First,
@@ -133,5 +134,5 @@ HTML-Fassung kennen nur dieses Format. Referenz ist [`layout/sample/edition.json
 4. **Meilenstein 3 – Familie** ✅ Weboberfläche (Leser, Stil, Zustellung, Interessen, Quellen, Archiv,
    HTML-Fassung, Leserbriefe, Systemstatus), Haushalts-PIN, Telegram-Verknüpfung.
 5. **Als Nächstes:** Inbetriebnahme auf Pi und Jetson; Prompts mit Gemma 3 4B an echten Artikeln
-   nachschärfen; Spaltenausgleich auf Folgeseiten verbessern.
+   nachschärfen (Maßstab: Probelauf mit Qwen3.8 auf captiva).
 6. **Danach:** weitere Quellen (siehe oben), Bilder (serverseitig in Graustufen/Sepia), Wochenendausgabe.

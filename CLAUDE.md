@@ -35,7 +35,8 @@ After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd
   Telegram poll, collect, fulltext, reporter with a time budget, housekeeping), `migrate` (Alembic, one-shot).
   Compose: `docker-compose.yml`; profile `demo` adds the LLM simulator.
 - **Pipeline modules:** `collect.py` (RSS/ICS, trafilatura full text, consent/paywall/scrambled-text rejection)
-  → `reporter.py` (enrich once per article; story assignment: embedding/topic candidates, LLM picks one or 0)
+  → `reporter.py` (enrich once per article, most-likely-printed first via `work_order`, one attempt per pass;
+  story assignment: embedding/topic candidates, LLM picks one or 0)
   → `edition.py` (per-reader selection without LLM, compose edition JSON) → `render.py` → `deliver.py`
   (Telegram sendDocument / SMTP; bot link codes and letters via getUpdates).
 - **The LLM is usually unavailable, and the design must treat that as normal.** Target: Jetson Orin Nano with
@@ -68,7 +69,12 @@ After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd
 - Every PDF is rendered as **PDF/UA-1**, and Typst fails the compile on violations. Every image needs `alt`.
   Heading levels must not skip: the masthead title is level 1, the lead story level 2, stories level 3 (level 2
   when there is no lead). The tests cover the edition without optional sections for this reason.
-- Typst does not balance columns; `balanced-columns` measures the content and caps the height.
+- Typst does not balance columns. `balanced-columns` (lead, one page) measures the content and caps the height.
+  `balanced-flow` (main multi-page flow) puts the columns in a breakable block of height natural/n so the last
+  page gets balanced columns; overflow is detected via the `<bflow-end>`/`<bflow-after>` markers and corrected
+  in the next layout pass. It uses fixed labels, so use it once per document. A long-edition test asserts the
+  layout converges without Typst warnings (the renderer logs warnings via `render_with_warnings`).
+- Section titles and story heads are `sticky` so they never end a column alone.
 - `droplet`'s drop cap block is unbreakable, so only the first paragraph goes into `dropcap` and the rest
   flows normally. Story headline, deck and source line are `sticky` blocks so they stay with the text.
 - Text colours must keep ≥ 4.5:1 contrast against the paper tint `#f9f7f1`.
