@@ -42,7 +42,8 @@ STORY_SCHEMA: dict[str, Any] = {
     "properties": {"story": {"type": "integer"}},
 }
 
-_NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
+# Free-standing numbers only: digits glued to letters are names, not figures ("CO2", "5G", "MP3", "H2").
+_NUMBER = re.compile(r"(?<![^\W\d_])\d+(?:[.,]\d+)*(?![^\W\d_])")
 
 
 def load_prompt(settings: Settings, name: str) -> str:

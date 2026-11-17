@@ -102,6 +102,13 @@ def test_validate_enrichment_rejects_invented_numbers() -> None:
         validate_enrichment(_answer(summary=["Es kamen 47 Gäste."]), PARAGRAPH)
 
 
+def test_validate_enrichment_ignores_names_with_digits() -> None:
+    answer = _answer(summary=["Weniger CO2 dank 5G-Steuerung und MP3-Ansagen."])
+    assert validate_enrichment(answer, PARAGRAPH)["summary"]
+    with pytest.raises(BadAnswer, match="unsupported_numbers:5"):
+        validate_enrichment(_answer(summary=["Es gibt 5 neue Ladesäulen mit CO2-Bilanz."]), PARAGRAPH)
+
+
 def test_validate_enrichment_rejects_incomplete() -> None:
     with pytest.raises(BadAnswer):
         validate_enrichment(_answer(summary=[]), PARAGRAPH)
