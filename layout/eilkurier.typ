@@ -58,6 +58,46 @@
   })
 }
 
+// Multi-page column flow whose LAST page is balanced (Typst fills columns one after another, which
+// leaves the last page with full left and empty right columns). A breakable block of total height
+// natural/n spreads over the pages, so the last page only gets the remainder, split evenly across the
+// columns. Column breaks waste some space (sticky headings, unbreakable boxes); if the text overflows
+// the block, the next layout pass grows it by the overflow. Use once per document (fixed labels).
+#let balanced-flow(n, gutter, body) = if n <= 1 { body } else {
+  // layout() only for measuring: it is re-run per page around breakable content.
+  layout(size => {
+    let col = (size.width - gutter * (n - 1)) / n
+    [#metadata(measure(block(width: col, body)).height)<bflow-natural>]
+  })
+  context {
+    let natural = query(<bflow-natural>)
+    if natural.len() == 0 {
+      // First pass: height unknown yet, set plain columns.
+      columns(n, gutter: gutter, [#body#metadata(none)<bflow-end>])
+      [#metadata(0pt)<bflow-extra>#metadata(none)<bflow-after>]
+      return
+    }
+    let em = 1em.to-absolute()
+    let extra = query(<bflow-extra>).at(0, default: (value: 0pt)).value
+    let ends = query(<bflow-end>)
+    let afters = query(<bflow-after>)
+    if ends.len() > 0 and afters.len() > 0 {
+      let e = ends.first().location().position()
+      let a = afters.first().location().position()
+      // The end marker sits below the block's bottom: the text overflowed in the last column.
+      if e.page == a.page and e.y + 0.5 * em > a.y { extra += (e.y - a.y) / n + 1.5 * em }
+    }
+    [#metadata(extra)<bflow-extra>]
+    block(
+      height: natural.first().value / n + extra + 2 * em,
+      breakable: true,
+      below: 0pt,
+      columns(n, gutter: gutter, [#body#metadata(none)<bflow-end>]),
+    )
+    [#metadata(none)<bflow-after>]
+  }
+}
+
 // Drop cap on the first paragraph only: droplet's block is not breakable, so the remaining
 // paragraphs must stay outside of it to flow across columns and pages.
 #let first-with-dropcap(t, ps, lines) = dropcap(
@@ -205,7 +245,7 @@
 // Side sections
 // ---------------------------------------------------------------------------------------------
 
-#let section-title(t, title) = block(below: 0.5em, width: 100%, {
+#let section-title(t, title) = block(below: 0.5em, width: 100%, sticky: true, {
   double-rule(t)
   v(-2pt)
   align(center, label-text(t, title, size: t.body-size * 1.6))
@@ -315,9 +355,9 @@
     v(2mm)
   }
 
-  columns(t.columns, gutter: 5mm)[
-    // Without a lead story the stories move up one heading level (PDF/UA forbids skipping levels).
-    #let level = if ed.at("lead", default: none) == none { 2 } else { 3 }
+  // Without a lead story the stories move up one heading level (PDF/UA forbids skipping levels).
+  let level = if ed.at("lead", default: none) == none { 2 } else { 3 }
+  balanced-flow(t.columns, 5mm)[
     #for s in ed.at("stories", default: ()) { story(t, s, l, level: level) }
     #if ed.at("lead", default: none) == none and ed.at("stories", default: ()).len() == 0 {
       text(style: "italic", fill: t.muted, l.quiet-day)
