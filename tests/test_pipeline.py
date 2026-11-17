@@ -10,7 +10,7 @@ from factories import PARAGRAPH, add_article, add_reader, add_source, article_pa
 from sqlalchemy import func, select
 
 from eilkurier import collect, reporter
-from eilkurier.db import Article, CalendarEvent, Channel, Edition, Letter, Reader, Status, Story
+from eilkurier.db import Article, CalendarEvent, Channel, Edition, Interest, Letter, Reader, Status, Story
 from eilkurier.deliver import deliver, poll_telegram
 from eilkurier.edition import compose
 from eilkurier.http import HostThrottle
@@ -122,9 +122,11 @@ def test_bad_answers_give_up_after_three_attempts(session, settings) -> None:
         )
 
     llm = LLM(settings, httpx.Client(base_url="http://x", transport=httpx.MockTransport(handler)))
-    reporter.run(session, llm, settings)
-    session.refresh(article)
-    assert article.enrichment_status == Status.FAILED and article.enrichment_attempts == 3
+    for attempt in range(1, 4):  # one attempt per worker pass, so a bad answer doesn't block the queue
+        reporter.run(session, llm, settings)
+        session.refresh(article)
+        assert article.enrichment_attempts == attempt
+    assert article.enrichment_status == Status.FAILED
 
 
 # --- edition ------------------------------------------------------------------------------------
@@ -340,3 +342,15 @@ def test_reader_deletion_cascades(session) -> None:
     session.flush()
     assert session.scalar(select(func.count()).select_from(Edition)) == 0
     assert session.scalar(select(func.count()).select_from(Reader)) == 0
+
+
+def test_reporter_works_on_likely_printed_articles_first(session) -> None:
+    subscribed, other = add_source(session), add_source(session, "Nachbarort-Bote")
+    add_reader(session, [subscribed], interests=[Interest(term="Garten", weight=2)])
+    newest = add_article(session, subscribed, "Neuer Bahnhof eröffnet", hours_ago=1)
+    garden = add_article(session, subscribed, "Garten im Herbst winterfest machen", hours_ago=10)
+    unsubscribed = add_article(session, other, "Garten-Tipps aus dem Nachbarort", hours_ago=0.5)
+    old = add_article(session, subscribed, "Garten-Rückblick", hours_ago=24 * 5)
+    session.commit()
+    order = reporter.work_order(session, datetime.now(UTC))
+    assert order == [garden.id, newest.id, unsubscribed.id, old.id]

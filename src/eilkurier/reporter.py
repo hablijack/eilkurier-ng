@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import Any
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
-from eilkurier.db import Article, Interest, Status, Story
+from eilkurier.db import Article, Interest, Reader, ReaderSource, Status, Story
 from eilkurier.llm import LLM, BadAnswer, Unavailable
 from eilkurier.settings import Settings
 
@@ -195,6 +195,43 @@ def embed_interests(session: Session, llm: LLM) -> None:
         session.commit()
 
 
+def work_order(session: Session, now: datetime) -> list[int]:
+    """Pending article ids, most likely to be printed first.
+
+    The model is slow (and often away), so spend it where it shows: articles that a reader's next
+    edition would pick (same scoring as the selection, interests x title/teaser, recency), then the rest
+    newest first (they still feed "Was bisher geschah").
+    """
+    from eilkurier.edition import LOOKBACK_HOURS, score_article  # edition imports this module
+
+    pending = session.scalars(
+        select(Article).where(
+            Article.enrichment_status == Status.PENDING,
+            Article.fulltext_status != Status.PENDING,
+        )
+    ).all()
+    readers = session.scalars(
+        select(Reader).where(Reader.active.is_(True)).options(selectinload(Reader.interests))
+    ).all()
+    subscribed = {
+        (rs.reader_id, rs.source_id)
+        for rs in session.scalars(
+            select(ReaderSource).where(ReaderSource.reader_id.in_([r.id for r in readers]))
+        )
+    }
+    recent = now - timedelta(hours=LOOKBACK_HOURS)
+
+    def priority(article: Article) -> tuple[float, datetime]:
+        best = 0.0
+        if article.published_at >= recent:
+            for reader in readers:
+                if (reader.id, article.source_id) in subscribed:
+                    best = max(best, score_article(article, reader, now))
+        return best, article.published_at
+
+    return [a.id for a in sorted(pending, key=priority, reverse=True)]
+
+
 def run(session: Session, llm: LLM, settings: Settings, budget_seconds: float = 120.0) -> int:
     """Enrich and assign as much as the time budget allows. Returns the number of processed articles."""
     if not settings.llm_enabled or not llm.available():
@@ -204,19 +241,16 @@ def run(session: Session, llm: LLM, settings: Settings, budget_seconds: float = 
     now = datetime.now(UTC)
     try:
         embed_interests(session, llm)
-        while time.monotonic() < deadline:
+        for article_id in work_order(session, now):
+            if time.monotonic() >= deadline:
+                break
             article = session.scalars(
                 select(Article)
-                .where(
-                    Article.enrichment_status == Status.PENDING,
-                    Article.fulltext_status != Status.PENDING,
-                )
-                .order_by(Article.published_at.desc())
-                .limit(1)
+                .where(Article.id == article_id, Article.enrichment_status == Status.PENDING)
                 .with_for_update(skip_locked=True)
             ).first()
             if article is None:
-                break
+                continue  # done meanwhile or locked by another worker
             enrich_article(llm, settings, article)
             if article.enrichment_status == Status.DONE:
                 assign_story(session, llm, settings, article, now)
