@@ -1,0 +1,61 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: cimg/python:3.13
+    steps:
+      - checkout
+      - run:
+          name: Install uv
+          command: pip install --user uv
+      - restore_cache:
+          keys:
+            - uv-{{ checksum "uv.lock" }}
+      - run:
+          name: Install dependencies
+          command: uv sync --locked
+      - save_cache:
+          key: uv-{{ checksum "uv.lock" }}
+          paths:
+            - ~/.cache/uv
+      - run:
+          name: Lint
+          command: |
+            uv run ruff check .
+            uv run ruff format --check .
+      - run:
+          name: Tests (incl. PDF/UA-1 typesetting of all themes)
+          command: uv run pytest --junitxml=test-results/junit.xml
+      - store_test_results:
+          path: test-results
+
+  image:
+    machine:
+      image: ubuntu-2404:current
+    resource_class: medium
+    steps:
+      - checkout
+      - run:
+          name: Enable arm64 emulation for multi-arch builds
+          command: docker run --privileged --rm tonistiigi/binfmt --install arm64
+      - run:
+          name: Build and push multi-arch image to Docker Hub
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker buildx create --use --name multiarch
+            docker buildx build \
+              --platform linux/arm64,linux/amd64 \
+              --tag hablijack/eilkurier-ng:latest \
+              --tag "hablijack/eilkurier-ng:${CIRCLE_SHA1:0:7}" \
+              --push .
+
+workflows:
+  build:
+    jobs:
+      - test
+      - image:
+          requires: [test]
+          filters:
+            branches:
+              only: main

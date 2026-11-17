@@ -1,0 +1,117 @@
+{
+  "masthead": {
+    "title": "Eilkurier",
+    "slogan": "Nachrichten, wie Sie sein sollten",
+    "region": "Das Internet",
+    "since": "Seit 2018"
+  },
+  "edition": {
+    "number": 1,
+    "date": "2026-11-17",
+    "date_label": "Dienstag, 17. November 2026",
+    "reader": "Christoph",
+    "lang": "de"
+  },
+  "style": {
+    "theme": "klassisch",
+    "paper": "a4",
+    "font_scale": 1.0,
+    "paper_tint": true
+  },
+  "weather": {
+    "place": "Musterstadt",
+    "summary": "Wolkig, ab Mittag Regen",
+    "temp_min": 3,
+    "temp_max": 9,
+    "wind": "Wind 12 km/h aus SW"
+  },
+  "sections": ["Region", "IT & Technik", "Selbermachen", "Musik", "Familie"],
+  "lead": {
+    "section": "Region",
+    "headline": "Brücke am Mühlbach öffnet früher als geplant",
+    "subhead": "Nach elf Monaten Sanierung rollt ab Freitag wieder der Verkehr",
+    "source": "Musterstädter Anzeiger",
+    "published": "16.11., 18:40",
+    "url": "https://example.org/musterstadt/bruecke-muehlbach",
+    "body": [
+      "Die Brücke über den Mühlbach wird bereits am kommenden Freitag wieder für den Verkehr freigegeben – drei Wochen früher als zuletzt angekündigt. Das teilte die Stadtverwaltung am Montagabend mit. Grund seien die trockenen Herbstwochen, in denen die Abdichtung des Brückenkörpers schneller als erwartet aushärten konnte.",
+      "Für Pendlerinnen und Pendler aus den nördlichen Ortsteilen endet damit eine Umleitung von gut acht Kilometern. Auch die Buslinie 4 fährt ab Freitag wieder ihre gewohnte Strecke; die Ersatzhaltestelle am Sportplatz entfällt.",
+      "Ganz abgeschlossen sind die Arbeiten allerdings noch nicht: Das Geländer auf der Westseite wird erst im Frühjahr erneuert. Bis dahin bleibt der Fußweg auf dieser Seite gesperrt, Fußgänger werden über die Ostseite geleitet.",
+      "Die Kosten der Sanierung liegen nach Angaben der Stadt bei rund 2,3 Millionen Euro und damit leicht unter dem ursprünglichen Ansatz."
+    ],
+    "background": [
+      "Seit Dezember 2025 gesperrt, nachdem Gutachter Risse im Tragwerk fanden.",
+      "Im März wurde die Freigabe von Juli auf Dezember verschoben – Lieferengpässe beim Spezialbeton.",
+      "Im September begann die Abdichtung; die Stadt nannte damals den 5. Dezember als Termin."
+    ]
+  },
+  "stories": [
+    {
+      "section": "IT & Technik",
+      "size": "large",
+      "headline": "Kleine Sprachmodelle holen auf",
+      "subhead": "Was Edge-Geräte heute schon leisten",
+      "source": "heise online",
+      "published": "17.11., 06:12",
+      "url": "https://example.org/heise/kleine-modelle",
+      "body": [
+        "Sprachmodelle mit nur wenigen Milliarden Parametern laufen inzwischen flüssig auf Einplatinenrechnern mit integrierter Grafikeinheit. Für Zusammenfassungen und das Umformulieren kurzer Texte reiche die Qualität vielen Anwendern bereits aus, heißt es in einem aktuellen Vergleich.",
+        "Schwächen zeigen die kleinen Modelle weiterhin bei längeren Zusammenhängen und bei Fakten, die nicht im vorgegebenen Text stehen. Die Autoren empfehlen daher, den Modellen möglichst eng umrissene Aufgaben zu geben."
+      ]
+    },
+    {
+      "section": "Selbermachen",
+      "size": "medium",
+      "headline": "Wetterstation im Vogelhaus",
+      "subhead": "Ein Wochenendprojekt mit Folgen",
+      "source": "Hackaday",
+      "published": "16.11., 21:05",
+      "url": "https://example.org/hackaday/vogelhaus",
+      "teaser_only": true,
+      "body": [
+        "Ein Bastler hat einen Mikrocontroller samt Temperatur-, Feuchte- und Luftdrucksensor so in ein Vogelhaus integriert, dass die Bewohner davon nichts merken. Die Messwerte landen per Funk auf einem Server im Keller."
+      ]
+    },
+    {
+      "section": "Musik",
+      "size": "medium",
+      "headline": "Röhrenverstärker im Taschenformat",
+      "source": "Gitarre & Bass",
+      "published": "16.11., 14:30",
+      "url": "https://example.org/gitarrebass/roehre",
+      "body": [
+        "Ein kleiner Hersteller bringt einen Röhrenverstärker mit einem Watt Leistung heraus, der kaum größer als ein Taschenbuch ist. Gedacht ist er für das Üben in der Wohnung, bei dem der typische Röhrenklang schon bei geringer Lautstärke entstehen soll.",
+        "Der Preis liegt im unteren dreistelligen Bereich; eine Version mit eingebautem Kopfhörerausgang soll im Frühjahr folgen."
+      ],
+      "background": [
+        "Der Hersteller hatte das Gerät im Sommer als Prototyp auf einer Messe gezeigt und damals einen Marktstart „vor Weihnachten“ angekündigt."
+      ]
+    },
+    {
+      "section": "Region",
+      "size": "small",
+      "headline": "Wochenmarkt zieht um",
+      "source": "Stadt Musterstadt",
+      "published": "16.11., 10:00",
+      "url": "https://example.org/musterstadt/wochenmarkt",
+      "body": [
+        "Wegen des Weihnachtsmarkts findet der Wochenmarkt vom 28. November bis zum 23. Dezember auf dem Parkplatz an der Stadthalle statt. Die Öffnungszeiten bleiben unverändert."
+      ]
+    }
+  ],
+  "briefs": [
+    { "headline": "Bahn", "text": "Auf der Strecke nach Nordheim fallen am Wochenende wegen Bauarbeiten einzelne Züge aus.", "source": "DB" },
+    { "headline": "Fußball", "text": "Der FC Musterstadt gewinnt das Kreisderby mit 2:1 und klettert auf Platz drei.", "source": "OpenLigaDB" },
+    { "headline": "Sprit", "text": "Diesel kostet heute in Musterstadt im Schnitt 1,62 €, Super E10 1,71 €.", "source": "Tankerkönig" }
+  ],
+  "family": [
+    { "from": "Mama", "text": "Am Sonntag gibt es Zwetschgendatschi – wer kommt, bringt Sahne mit!" },
+    { "from": "Lukas", "text": "Hab die Mathe-Schulaufgabe zurück: eine Zwei!" }
+  ],
+  "almanac": {
+    "Sonne": "07:31 – 16:33 Uhr",
+    "Mond": "zunehmend, 41 %",
+    "Namenstag": "Gertrud, Hilda",
+    "Heute vor 100 Jahren": "Beispieleintrag aus dem Kalenderblatt."
+  }
+}

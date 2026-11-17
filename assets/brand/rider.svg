@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" role="img" aria-labelledby="t">
+  <title id="t">Eilkurier – galoppierender Kurierreiter</title>
+  <g fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <!-- tail -->
+    <path stroke-width="0" d="M56,55 C44,45 24,45 4,57 C19,54 30,55 38,58 C25,62 16,70 8,82 C25,71 40,66 58,65 Z"/>
+    <!-- horse body, neck, head -->
+    <path stroke-width="0" d="M50,58 C54,44 80,44 100,48 C110,49 116,47 124,44 C136,39 146,28 154,20 L156,11 L161,18 L165,13 L166,21
+      C174,26 182,34 188,41 C190,45 187,49 181,48 C175,46 168,44 163,43 C160,51 157,59 154,66
+      C151,76 142,82 130,80 C115,78 100,79 88,79 C75,82 52,80 50,58 Z"/>
+    <!-- muscle masses: haunch and shoulder -->
+    <ellipse stroke-width="0" cx="68" cy="65" rx="20" ry="15" transform="rotate(-20 68 65)"/>
+    <ellipse stroke-width="0" cx="143" cy="68" rx="12" ry="11"/>
+    <!-- mane -->
+    <path stroke-width="0" d="M151,22 C144,23 137,30 131,39 C137,35 141,34 144,34 C139,38 136,42 133,46 C142,40 148,35 153,30 Z"/>
+    <!-- front legs: one reaching, one folding -->
+    <path fill="none" stroke-width="8" d="M148,72 L164,80"/>
+    <path fill="none" stroke-width="5.5" d="M164,80 L181,77"/>
+    <path fill="none" stroke-width="7.5" d="M138,77 L151,90"/>
+    <path fill="none" stroke-width="5" d="M151,90 L169,94"/>
+    <!-- hind legs: thigh, gaskin, cannon pushing back -->
+    <path fill="none" stroke-width="11" d="M62,72 L50,84"/>
+    <path fill="none" stroke-width="5.5" d="M50,84 L26,90"/>
+    <path fill="none" stroke-width="10" d="M76,74 L64,92"/>
+    <path fill="none" stroke-width="5" d="M64,92 L39,101"/>
+    <!-- hooves -->
+    <path stroke-width="2" d="M181,73 L189,75 L187,81 L180,80 Z"/>
+    <path stroke-width="2" d="M169,90 L177,93 L174,98 L168,97 Z"/>
+    <path stroke-width="2" d="M26,86 L18,87 L19,93 L27,93 Z"/>
+    <path stroke-width="2" d="M39,97 L31,99 L33,105 L40,104 Z"/>
+    <!-- rider: leg, torso, arm, head -->
+    <path fill="none" stroke-width="7" d="M113,41 L128,49 L119,58"/>
+    <path stroke-width="3" d="M108,42 C108,34 118,24 133,19 C138,20 140,24 138,28 C128,32 120,38 116,44 Z"/>
+    <path fill="none" stroke-width="4.5" d="M134,24 L144,32 L153,33"/>
+    <circle stroke-width="0" cx="139" cy="15" r="6.5"/>
+    <!-- courier satchel with letter flap -->
+    <path stroke-width="1.5" d="M98,30 L112,26 L116,39 L102,43 Z"/>
+    <path fill="none" stroke="#f9f7f1" stroke-width="1.6" d="M99.5,31.5 L108,34 L112.5,28"/>
+    <!-- reins -->
+    <path fill="none" stroke-width="1.4" d="M153,33 C162,38 172,42 181,44"/>
+  </g>
+</svg>
