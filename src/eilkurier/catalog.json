@@ -1,0 +1,287 @@
+[
+ {
+  "name": "Golem.de News",
+  "url": "https://rss.golem.de/rss.php?feed=ATOM2.0",
+  "category": "IT & Technik"
+ },
+ {
+  "name": "heise online News",
+  "url": "https://www.heise.de/rss/heise-atom.xml",
+  "category": "IT & Technik"
+ },
+ {
+  "name": "OMG! Ubuntu!",
+  "url": "https://feeds.feedburner.com/d0od?format=xml",
+  "category": "IT & Technik"
+ },
+ {
+  "name": "Winfuture",
+  "url": "https://static.winfuture.de/feeds/WinFuture-News-rss2.0.xml",
+  "category": "IT & Technik"
+ },
+ {
+  "name": "t3n digital pioneers",
+  "url": "https://t3n.de/rss.xml",
+  "category": "IT & Technik"
+ },
+ {
+  "name": "Engadget",
+  "url": "https://www.engadget.com/rss.xml",
+  "category": "IT & Technik"
+ },
+ {
+  "name": "Adafruit Blog",
+  "url": "https://blog.adafruit.com/feed/",
+  "category": "IT & Technik"
+ },
+ {
+  "name": "Lifehacker",
+  "url": "https://lifehacker.com/feed/rss",
+  "category": "Selbermachen"
+ },
+ {
+  "name": "Heise Make",
+  "url": "https://www.heise.de/make/feed.xml",
+  "category": "Selbermachen"
+ },
+ {
+  "name": "Hackaday",
+  "url": "https://hackaday.com/feed/",
+  "category": "Selbermachen"
+ },
+ {
+  "name": "Adafruit Learning",
+  "url": "https://learn.adafruit.com/feed",
+  "category": "Selbermachen"
+ },
+ {
+  "name": "GITARRE & BASS",
+  "url": "https://www.gitarrebass.de/feed/",
+  "category": "Musik"
+ },
+ {
+  "name": "Gearnews",
+  "url": "https://www.gearnews.de/bereich/gitarre/feed/",
+  "category": "Musik"
+ },
+ {
+  "name": "Digital Present",
+  "url": "https://digitalpresent.tagesspiegel.de/feed.xml",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "ZEIT ONLINE",
+  "url": "https://newsfeed.zeit.de/index",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "SPIEGEL ONLINE",
+  "url": "https://www.spiegel.de/index.rss",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "taz.de",
+  "url": "https://taz.de/!p4608;rss/",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "Frankfurter Allgemeine Zeitung",
+  "url": "https://www.faz.net/rss/aktuell/",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "Tagesschau",
+  "url": "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "Sueddeutsche: Top-Themen",
+  "url": "https://rss.sueddeutsche.de/rss/Topthemen",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "Sueddeutsche: Alle-Themen",
+  "url": "https://rss.sueddeutsche.de/alles",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "Sueddeutsche: Eilmeldungen",
+  "url": "https://rss.sueddeutsche.de/rss/Eilmeldungen",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "Münchner Merkur",
+  "url": "https://www.merkur.de/rssfeed.rdf",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "Welt: Top-News",
+  "url": "https://www.welt.de/feeds/topnews.rss",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "Welt: Alle Themen",
+  "url": "https://www.welt.de/feeds/latest.rss",
+  "category": "Nachrichten"
+ },
+ {
+  "name": "Onetz Amberg",
+  "url": "https://www.onetz.de/themen/Region%20Amberg/index.rss",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Cham",
+  "url": "https://www.onetz.de/themen/Region%20Cham/index.rss",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Eschenbach",
+  "url": "https://www.onetz.de/themen/Region%20Eschenbach/index.rss",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Kemnath",
+  "url": "https://www.onetz.de/themen/Region%20Kemnath/index.rss",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Nabburg",
+  "url": "https://www.onetz.de/themen/Region%20Nabburg/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Neumarkt",
+  "url": "https://www.onetz.de/themen/Region%20Neumarkt/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Oberviechtach",
+  "url": "https://www.onetz.de/themen/Region%20Oberviechtach-Neunburg/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Regensburg",
+  "url": "https://www.onetz.de/themen/Region%20Regensburg/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Schwandorf",
+  "url": "https://www.onetz.de/themen/Region%20Schwandorf/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Sulzbach-Rosenberg",
+  "url": "https://www.onetz.de/themen/Region%20Sulzbach-Rosenberg/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Tirschenreuth",
+  "url": "https://www.onetz.de/themen/Region%20Tirschenreuth/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Vohenstrauß",
+  "url": "https://www.onetz.de/themen/Region%20Vohenstrau%C3%9F/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Weiden",
+  "url": "https://www.onetz.de/themen/Region%20Weiden-Neustadt/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Stadt Weiden",
+  "url": "https://www.weiden.de/index.php?id=243&type=9818",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Bayern",
+  "url": "https://www.onetz.de/themen/bayern/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Kultur",
+  "url": "https://www.onetz.de/themen/kultur/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Polizeibericht",
+  "url": "https://www.onetz.de/themen/polizei/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Onetz Oton",
+  "url": "https://www.onetz.de/themen/oton/rss.xml",
+  "category": "Region"
+ },
+ {
+  "name": "Stadt Waldershof",
+  "url": "https://www.waldershof.de/feed/",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost: Topmeldungen",
+  "url": "https://www.frankenpost.de/topmeldung.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost: Auf einen Blick",
+  "url": "https://www.frankenpost.de/auf-einen-blick.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost: Regional",
+  "url": "https://www.frankenpost.de/region.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost Hof",
+  "url": "https://www.frankenpost.de/region/hof.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost Rehau",
+  "url": "https://www.frankenpost.de/region/rehau.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost Naila",
+  "url": "https://www.frankenpost.de/region/naila.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost Münchberg",
+  "url": "https://www.frankenpost.de/region/muenchberg.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost Fichtelgebirge",
+  "url": "https://www.frankenpost.de/region/fichtelgebirge.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost Wunsiedel",
+  "url": "https://www.frankenpost.de/region/wunsiedel.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost Marktredwitz",
+  "url": "https://www.frankenpost.de/region/marktredwitz.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost Selb",
+  "url": "https://www.frankenpost.de/region/selb.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost Arzberg",
+  "url": "https://www.frankenpost.de/region/arzberg.rss2.feed",
+  "category": "Region"
+ },
+ {
+  "name": "Frankenpost Kulmbach",
+  "url": "https://www.frankenpost.de/region/kulmbach.rss2.feed",
+  "category": "Region"
+ }
+]

@@ -10,6 +10,18 @@ dependencies = [
     "uvicorn[standard]>=0.32",
     "pydantic-settings>=2.6",
     "typst>=0.15",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.14",
+    "pgvector>=0.3",
+    "feedparser>=6.0",
+    "trafilatura>=2.0",
+    "httpx>=0.28",
+    "astral>=3.2",
+    "icalendar>=6.0",
+    "recurring-ical-events>=3.3",
+    "itsdangerous>=2.2",
+    "email-validator>=2.2",
 ]
 
 [project.scripts]
@@ -32,6 +44,14 @@ target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+# German typography uses real dashes and quotes on purpose.
+ignore = ["RUF001", "RUF002", "RUF003"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = [
+    # third-party noise: trafilatura imports urllib3's optional SOCKS support; Starlette's TestClient API
+    "ignore:SOCKS support:urllib3.exceptions.DependencyWarning",
+    "ignore:Using `httpx` with `starlette.testclient`",
+    "ignore:You should not use the 'timeout' argument",
+]

@@ -41,8 +41,10 @@
 
 #let meta-line(t, s, l) = {
   let parts = (s.source, s.at("published", default: none)).filter(p => p != none)
-  let teaser = if s.at("teaser_only", default: false) { " · " + l.teaser-only } else { "" }
-  block(sticky: true, width: 100%, align(right, text(size: t.body-size * 0.85, fill: t.muted, style: "italic")[(#parts.join(" · ")#teaser)]))
+  if s.at("teaser_only", default: false) { parts.push(l.teaser-only) }
+  // `excerpt`: printed straight from the source text because the reporter (LLM) had no time for it yet.
+  if s.at("excerpt", default: false) { parts.push(l.excerpt) }
+  block(sticky: true, width: 100%, align(right, text(size: t.body-size * 0.85, fill: t.muted, style: "italic")[(#parts.join(" · "))]))
 }
 
 #let paragraphs(ps) = ps.map(p => [#p]).join(parbreak())
@@ -232,6 +234,18 @@
   ]
 }
 
+#let calendar-section(t, items, l) = if items.len() > 0 {
+  block(width: 100%, breakable: true, below: 1.4em)[
+    #section-title(t, l.calendar)
+    #set par(justify: false)
+    #for c in items [
+      #label-text(t, c.when, size: t.body-size * 1.1) \
+      #c.what
+      #v(0.2em)
+    ]
+  ]
+}
+
 #let almanac(t, a, l) = if a != none {
   block(width: 100%, breakable: false, below: 1.4em)[
     #section-title(t, l.almanac)
@@ -305,7 +319,11 @@
     // Without a lead story the stories move up one heading level (PDF/UA forbids skipping levels).
     #let level = if ed.at("lead", default: none) == none { 2 } else { 3 }
     #for s in ed.at("stories", default: ()) { story(t, s, l, level: level) }
+    #if ed.at("lead", default: none) == none and ed.at("stories", default: ()).len() == 0 {
+      text(style: "italic", fill: t.muted, l.quiet-day)
+    }
     #briefs(t, ed.at("briefs", default: ()), l)
+    #calendar-section(t, ed.at("calendar", default: ()), l)
     #family(t, ed.at("family", default: ()), l)
     #almanac(t, ed.at("almanac", default: none), l)
   ]
