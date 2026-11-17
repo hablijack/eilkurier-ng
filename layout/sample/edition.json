@@ -25,7 +25,13 @@
     "temp_max": 9,
     "wind": "Wind 12 km/h aus SW"
   },
-  "sections": ["Region", "IT & Technik", "Selbermachen", "Musik", "Familie"],
+  "sections": [
+    "Region",
+    "IT & Technik",
+    "Selbermachen",
+    "Musik",
+    "Familie"
+  ],
   "lead": {
     "section": "Region",
     "headline": "Brücke am Mühlbach öffnet früher als geplant",
@@ -96,17 +102,50 @@
       "url": "https://example.org/musterstadt/wochenmarkt",
       "body": [
         "Wegen des Weihnachtsmarkts findet der Wochenmarkt vom 28. November bis zum 23. Dezember auf dem Parkplatz an der Stadthalle statt. Die Öffnungszeiten bleiben unverändert."
-      ]
+      ],
+      "excerpt": true
     }
   ],
   "briefs": [
-    { "headline": "Bahn", "text": "Auf der Strecke nach Nordheim fallen am Wochenende wegen Bauarbeiten einzelne Züge aus.", "source": "DB" },
-    { "headline": "Fußball", "text": "Der FC Musterstadt gewinnt das Kreisderby mit 2:1 und klettert auf Platz drei.", "source": "OpenLigaDB" },
-    { "headline": "Sprit", "text": "Diesel kostet heute in Musterstadt im Schnitt 1,62 €, Super E10 1,71 €.", "source": "Tankerkönig" }
+    {
+      "headline": "Bahn",
+      "text": "Auf der Strecke nach Nordheim fallen am Wochenende wegen Bauarbeiten einzelne Züge aus.",
+      "source": "DB"
+    },
+    {
+      "headline": "Fußball",
+      "text": "Der FC Musterstadt gewinnt das Kreisderby mit 2:1 und klettert auf Platz drei.",
+      "source": "OpenLigaDB"
+    },
+    {
+      "headline": "Sprit",
+      "text": "Diesel kostet heute in Musterstadt im Schnitt 1,62 €, Super E10 1,71 €.",
+      "source": "Tankerkönig"
+    }
+  ],
+  "calendar": [
+    {
+      "when": "Mi 18.11., 19:30",
+      "what": "Elternabend Klasse 7b"
+    },
+    {
+      "when": "Sa 21.11.",
+      "what": "Geburtstag Oma Gerda"
+    },
+    {
+      "when": "So 22.11., 15:00",
+      "what": "Kaffee bei Mama und Papa"
+    }
   ],
   "family": [
-    { "from": "Mama", "text": "Am Sonntag gibt es Zwetschgendatschi – wer kommt, bringt Sahne mit!" },
-    { "from": "Lukas", "text": "Hab die Mathe-Schulaufgabe zurück: eine Zwei!" }
+    {
+      "from": "Mama",
+      "text": "Am Sonntag gibt es Zwetschgendatschi – wer kommt, bringt Sahne mit!"
+    },
+    {
+      "from": "Lukas",
+      "text": "Hab die Mathe-Schulaufgabe zurück: eine Zwei!"
+    }
   ],
   "almanac": {
     "Sonne": "07:31 – 16:33 Uhr",

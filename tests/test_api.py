@@ -140,3 +140,14 @@ def test_household_pin(engine, clean_db, monkeypatch) -> None:
     client.delete("/api/v1/session")
     assert client.get("/api/v1/readers").status_code == 401
     assert client.get("/health/live").status_code == 200  # probes never need the PIN
+
+
+def test_web_ui_client_matches_api() -> None:
+    """frontend/openapi.json (source of the typed client) must match the API. Fix: see message."""
+    import json
+    from pathlib import Path
+
+    committed = json.loads((Path(__file__).parents[1] / "frontend" / "openapi.json").read_text("utf-8"))
+    assert committed == create_app().openapi(), (
+        "API changed: run `uv run eilkurier openapi > frontend/openapi.json && (cd frontend && npm run api)`"
+    )

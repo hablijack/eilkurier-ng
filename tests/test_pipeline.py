@@ -6,7 +6,7 @@ from typing import ClassVar
 from zoneinfo import ZoneInfo
 
 import httpx
-from factories import add_article, add_reader, add_source, article_page, rss
+from factories import PARAGRAPH, add_article, add_reader, add_source, article_page, rss
 from sqlalchemy import func, select
 
 from eilkurier import collect, reporter
@@ -192,13 +192,16 @@ def test_unedited_articles_are_printed_as_excerpts(session, settings) -> None:
 def test_background_shows_earlier_events(session, settings, simulator_http) -> None:
     source = add_source(session)
     reader = add_reader(session, [source])
-    add_article(session, source, "Brücke Mühlbach Sanierung beginnt", hours_ago=60)
+    start = "Die Sanierung der Brücke am Mühlbach hat am Montag begonnen. "
+    add_article(
+        session, source, "Brücke Mühlbach Sanierung beginnt", hours_ago=60, fulltext=start + PARAGRAPH * 3
+    )
     add_article(session, source, "Brücke Mühlbach Sanierung endet", hours_ago=2)
     session.commit()
     reporter.run(session, LLM(settings, simulator_http), settings)
     edition = compose(session, reader, settings, datetime.now(UTC).date(), None)
     assert edition["lead"]["headline"] == "Brücke Mühlbach Sanierung endet"
-    assert len(edition["lead"]["background"]) == 1
+    assert [e.split(": ", 1)[1] for e in edition["lead"]["background"]] == [start.strip()]
 
 
 def test_empty_edition_still_renders(session, settings) -> None:

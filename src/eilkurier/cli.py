@@ -36,7 +36,7 @@ def _seed_demo() -> None:
         session.add_all(sources)
         papa = Reader(name="Papa", telegram_link_code=new_link_code(), sources=sources)
         papa.interests = [
-            Interest(term=t, weight=w) for t, w in [("Linux", 2), ("Gitarre", 1.5), ("Raspberry", 1)]
+            Interest(term=t, weight=w) for t, w in [("Linux", 2), ("Gitarre", 2), ("Raspberry", 1)]
         ]
         oma = Reader(
             name="Oma",
@@ -64,6 +64,7 @@ def main() -> None:
     commands.add_parser("worker", help="Run the pipeline loop: collect, enrich, build and deliver")
     commands.add_parser("tick", help="Run one pipeline pass and exit (debugging)")
     commands.add_parser("seed-demo", help="Create a demo household (only on an empty database)")
+    commands.add_parser("openapi", help="Print the OpenAPI document (for the web UI's generated client)")
     sim = commands.add_parser("simulator", help="Run the language-model simulator (no GPU needed)")
     sim.add_argument("--host", default="0.0.0.0")
     sim.add_argument("--port", type=int, default=11434)
@@ -89,6 +90,10 @@ def main() -> None:
 
         worker = Worker(settings)
         worker.run_forever() if args.command == "worker" else worker.tick()
+    elif args.command == "openapi":
+        from eilkurier.app import create_app
+
+        print(json.dumps(create_app().openapi(), ensure_ascii=False, indent=2))
     elif args.command == "seed-demo":
         _seed_demo()
     elif args.command == "simulator":

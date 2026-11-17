@@ -4,110 +4,110 @@
 
 Jede Person der Familie bekommt täglich ihre eigene Zeitung. Ein „Reporter“ sammelt Nachrichten aus vielen
 Quellen, lädt die vollständigen Artikel nach, verfolgt Geschichten über mehrere Tage und schreibt daraus eine
-gesetzte Ausgabe im persönlichen Zeitungsstil. Gelesen wird auf Smartphone und iPad (PDF), auf Wunsch auch
-ausgedruckt.
+gesetzte Ausgabe im persönlichen Zeitungsstil. Gelesen wird auf Smartphone und iPad (PDF oder HTML-Fassung),
+auf Wunsch auch ausgedruckt.
 
 ## Rahmenbedingungen
 
 | Thema | Entscheidung |
 |---|---|
-| Betrieb | Docker Compose auf einem Raspberry Pi (arm64, 8 GB RAM, openmediavault 8). Der Pi ist bereits ausgelastet (Load ≈ 3): sparsam bleiben. |
-| KI | Primär **captiva** (Intel Arc Pro B70, 32 GB): vLLM mit **Qwen3.8 27B** (Alias `qwen3.8`), OpenAI-kompatibel unter `http://captiva.fritz.box:8080`. captiva ist ein **manuell eingeschalteter Desktop** und wird mit dem Enrichment von guitar-vision geteilt. Später optional der Jetson Orin Nano (derzeit belegt). Auf dem Pi laufen keine Modelle. |
-| Zugriff | Nur Heimnetz. Einfache Profilauswahl, optional mit PIN; austauschbar gestaltet. |
-| Leser | 6 Personen, jede mit eigenen Interessen, eigenem Stil, eigener Zustellzeit und eigenem Kanal. |
+| Betrieb | Docker Compose auf einem Raspberry Pi (arm64, 8 GB RAM, openmediavault 8). Der Pi ist bereits ausgelastet (Load ≈ 3): sparsam bleiben. Auf dem Pi laufen **keine** Modelle. |
+| KI | Ziel: **Jetson Orin Nano 8 GB** mit **Ollama**: Sprachmodell **Gemma 3 4B** (`gemma3:4b`), Embeddings **EmbeddingGemma** (`embeddinggemma`). Zum Ausprobieren optional **captiva** (vLLM, Qwen3.8 27B); captiva zieht mit der 32-GB-Karte rund 800 W und läuft deshalb nicht dauerhaft. Für Entwicklung und Vorführung gibt es einen **Simulator** ohne GPU. |
+| Zugriff | Nur Heimnetz. Optional eine Haushalts-PIN für die Weboberfläche. |
+| Leser | 6 Personen, jede mit eigenen Interessen, eigenem Stil, eigener Zustellzeit, eigenen Wochentagen und eigenem Kanal. |
 | Code & Images | GitHub (`eilkurier-ng`), CircleCI, Docker Hub öffentlich (`hablijack/eilkurier-ng`, arm64 + amd64). |
-| Standards | API-first (OpenAPI), zustandslose Container (12-Factor, Konfiguration per Umgebung), I18n, A11y (WCAG 2.2 AA im Web, PDF/UA-1 im Druck), Mobile-First für die Weboberfläche. |
+| Standards | API-first (OpenAPI, typisierter Client daraus generiert), zustandslose Container (12-Factor, Konfiguration per Umgebung, Root-FS schreibgeschützt), I18n (de/en in Web und Druck), A11y (WCAG 2.2 AA im Web, PDF/UA-1 im Druck), Mobile-First für die Weboberfläche. |
 
 ## Komponenten
 
 ```
                     ┌──────────────── Raspberry Pi (docker compose) ────────────────┐
-  Quellen ────────▶ │  worker   Sammeln → Volltext → Anreichern → Geschichten →      │
-  (RSS, Wetter,     │           Auswahl je Leser → Redigieren → Setzen → Zustellen   │ ──▶ Telegram / E-Mail
-   Kalender, …)     │     │                         ▲                                │
+  Quellen ────────▶ │  worker   Sammeln → Volltext → Reporter → Ausgaben setzen →    │
+  (RSS, ICS,        │           Zustellen  (+ Telegram-Bot: Verknüpfen, Leserbriefe) │ ──▶ Telegram / E-Mail
+   Wetter, …)       │     │                         ▲                                │
                     │     ▼                         │ OpenAI-kompatible API          │
                     │  postgres + pgvector          │                                │
                     │     ▲                         │                                │
-                    │  app   REST-API (FastAPI) + Weboberfläche (statisch)           │ ◀── Smartphone / iPad
+                    │  app   REST-API (FastAPI) + Weboberfläche (SvelteKit, statisch)│ ◀── Smartphone / iPad
+                    │  migrate  (einmalig beim Start)                                │
                     └───────────────────────────────┼────────────────────────────────┘
-                                                    ▼ (nur wenn eingeschaltet)
-                              captiva: vLLM, Qwen3.8 27B  ·  später optional: Jetson
+                                                    ▼ (wenn erreichbar)
+                     Jetson: Ollama, Gemma 3 4B + EmbeddingGemma
+                     (zum Ausprobieren: captiva/vLLM · Entwicklung: Simulator)
 ```
 
-- **app** und **worker** nutzen dasselbe Image mit unterschiedlichem Startbefehl. Sie halten keinen Zustand:
-  Alles Veränderliche liegt in Postgres, erzeugte PDFs in Postgres oder einem Volume.
-- **postgres + pgvector** ist der einzige Speicher: Stammdaten, Artikel, Embeddings und die Job-Warteschlange
-  (über `SELECT … FOR UPDATE SKIP LOCKED`). Redis oder einen Broker gibt es nicht.
+- **app**, **worker** und **migrate** nutzen dasselbe Image mit unterschiedlichem Startbefehl. Sie halten
+  keinen Zustand: Alles Veränderliche liegt in Postgres, auch die fertigen PDFs.
+- **postgres + pgvector** ist der einzige Speicher: Stammdaten, Artikel, Embeddings und die Arbeitswarteschlange
+  (Statusspalten + `SELECT … FOR UPDATE SKIP LOCKED`). Redis oder einen Broker gibt es nicht.
+- **worker** ist eine einzige Schleife mit 30-Sekunden-Takt. Jeder Schritt läuft isoliert (ein Fehler in
+  einem Schritt hält die anderen nicht auf), in dieser Reihenfolge: fällige Ausgaben und Zustellungen,
+  Telegram abfragen, Quellen sammeln, Volltexte laden, Reporter (mit Zeitbudget), Aufräumen.
 - **Das LLM ist ein externer Dienst, der oft nicht da ist.** Das ist der Normalfall, kein Fehler:
-  - Angereichert wird, **sobald** captiva erreichbar ist. Bis dahin warten neue Artikel in der Warteschlange,
-    es geht nichts verloren.
-  - Die Ausgabe erscheint **trotzdem pünktlich**. Nicht angereicherte Artikel werden *extraktiv* gesetzt
-    (die ersten Sätze des Volltexts, auf Länge gekürzt) und dezent markiert. Eine Ausgabe wartet nie auf das LLM.
-  - Für die Erreichbarkeit fragt der Worker `GET /v1/models` ab, höchstens einmal pro Minute, und nur, solange
-    Arbeit ansteht. Bei `429/502/503/504` oder Verbindungsfehlern zieht er sich mit wachsendem Abstand zurück.
-- **Rücksicht auf guitar-vision:** captiva bedient auch dessen Enrichment. Eilkurier schickt **eine Anfrage
-  zur Zeit**, begrenzt die Tokens pro Anfrage und ändert nie etwas an captiva (vLLM-Konfiguration, Dienste).
+  - Bearbeitet wird, **sobald** das Modell erreichbar ist. Bis dahin warten neue Artikel, es geht nichts verloren.
+  - Die Ausgabe erscheint **trotzdem pünktlich**. Nicht bearbeitete Artikel werden *extraktiv* gesetzt
+    (die ersten Sätze des Volltexts, auf Länge gekürzt) und als „Auszug“ markiert.
+  - Erreichbarkeit: `GET /v1/models`, höchstens einmal pro Minute. `429/502/503/504` und Verbindungsfehler
+    gelten als „später wieder versuchen“.
 
 ## Pipeline
 
 | Schritt | Was passiert | Wo | Häufigkeit |
 |---|---|---|---|
-| 1. Sammeln | Feeds und andere Quellen abfragen (ETag/Last-Modified, höflich gedrosselt) | Pi | alle 30–60 min |
-| 2. Volltext | Artikelseite laden, Haupttext mit **trafilatura** extrahieren; bei Bezahlschranke `teaser_only` | Pi | pro neuem Artikel |
-| 3. Anreichern | **einmal pro Artikel**: Zusammenfassung, Kernfakten, Themen-Tags (strukturiert als JSON-Schema) | captiva | sobald erreichbar |
-| 4. Geschichten | Neuen Artikel einer offenen *Story* zuordnen oder eine neue eröffnen; Story-Gedächtnis („Stand der Dinge“) fortschreiben | captiva | sobald erreichbar |
-| 5. Auswahl | Je Leser: Themen-Tags × Interessen, Quellenvielfalt, Neuigkeitswert → Seitenplan | Pi (ohne LLM) | vor jeder Ausgabe |
-| 6. Redigieren | Texte auf Länge bringen, „Neu heute“ vs. „Was bisher geschah“, Ton je Leser; Ersatz: extraktiv | captiva, sonst Pi | vor jeder Ausgabe |
-| 7. Setzen | Ausgabe-JSON → Typst → PDF (PDF/UA-1), zusätzlich eine barrierefreie HTML-Fassung | Pi | vor jeder Ausgabe |
-| 8. Zustellen | Telegram-Bot oder SMTP zur gewünschten Uhrzeit | Pi | je Leser |
+| 1. Sammeln | RSS/Atom (ETag/Last-Modified, höflich gedrosselt), ICS-Kalender (14 Tage voraus) | Pi | alle 30 min |
+| 2. Volltext | Artikelseite laden, Haupttext mit **trafilatura**; Cookie-/Paywall-Seiten und verwürfelter Paywall-Text werden erkannt, dann bleibt es beim Anreißer | Pi | pro neuem Artikel |
+| 3. Anreichern | **einmal pro Artikel**: Überschrift, Unterzeile, Zusammenfassung, Ereignis in einem Satz, Themen, Wichtigkeit (strikte JSON-Schema-Ausgabe) | Jetson | sobald erreichbar |
+| 4. Geschichten | Kandidaten über Embedding-Ähnlichkeit (ohne Embeddings: Themen-Überlappung), das LLM wählt eine laufende Geschichte oder „neu“ | Jetson | sobald erreichbar |
+| 5. Auswahl | Je Leser: Interessen × Themen, Wichtigkeit, Aktualität, Quellenvielfalt, eine Meldung pro Geschichte, nichts doppelt aus den letzten Ausgaben | Pi (ohne LLM) | vor jeder Ausgabe |
+| 6. Setzen | Ausgabe-JSON → Typst → PDF (PDF/UA-1); die Weboberfläche zeigt dasselbe JSON als barrierefreie HTML-Fassung | Pi | vor jeder Ausgabe |
+| 7. Zustellen | Telegram-Bot oder SMTP zur gewünschten Uhrzeit an den gewählten Wochentagen, mit Wiederholungen | Pi | je Leser |
 
-Die teure LLM-Arbeit (Schritt 3) fällt **einmal pro Artikel** an, nicht pro Leser. Pro Leser bleibt nur wenig
-Redaktionsarbeit. So kommt das System auch mit wenigen Stunden captiva-Laufzeit am Tag aus.
+Die teure LLM-Arbeit fällt **einmal pro Artikel** an, nicht pro Leser. Ein 4B-Modell schafft das für eine
+Familie bequem; captiva ist nur für Vergleiche nötig.
 
 ## KI-Modelle
 
-- **Sprachmodell:** **Qwen3.8 27B** auf captiva (vLLM, GPTQ-Int4; Alias `qwen3.8`). Ein 27B-Modell schreibt
-  deutlich besseres Deutsch als ein 4B-Modell und folgt Geschichten zuverlässiger. Aufrufe wie in
-  guitar-vision: `temperature: 0`, Denkmodus aus (`chat_template_kwargs.enable_thinking=false`), strikte
-  JSON-Schema-Ausgabe, `finish_reason` muss `stop` sein. Modellname und URL sind nur Konfigurationswerte, so dass
-  später auch der Jetson oder ein anderes Modell eingesetzt werden kann.
-- **Geschichten ohne Embeddings:** captiva stellt nur das Sprachmodell bereit, der Jetson ist belegt. Deshalb
-  ordnet das LLM selbst zu: Es bekommt den neuen Artikel und die offenen Stories (Titel + Stand der Dinge) und
-  antwortet strukturiert mit „gehört zu Story X“ oder „neue Story“. Das kann ein 27B-Modell gut. Embeddings
-  (pgvector) bleiben eine spätere Option, z. B. zur Vorauswahl, wenn die Zahl offener Stories wächst.
-- **Gegen Halluzinationen:** eng gefasste Aufgaben, strukturierte Ausgabe, immer mit Quelltext im Kontext.
-  Zahlen und Namen werden gegen den Quelltext geprüft. Jede Meldung trägt Quelle und QR-Code.
-- **Hostname:** immer voll qualifiziert `captiva.fritz.box` (in Containern wird die Suchdomäne nicht immer
-  angehängt; das ist in guitar-vision mit Alpine bereits schiefgegangen).
+- **Sprachmodell:** Gemma 3 4B über Ollama auf dem Jetson. Die Aufgaben sind klein und eng gefasst, mit
+  Quelltext im Kontext (höchstens 6000 Zeichen) und strikter JSON-Schema-Ausgabe; `finish_reason` muss `stop`
+  sein. Ollama braucht `OLLAMA_CONTEXT_LENGTH=8192`, sonst werden lange Artikel abgeschnitten.
+- **Embeddings:** EmbeddingGemma, ebenfalls auf dem Jetson, in pgvector gespeichert. Ohne Embedding-Modell
+  (z. B. mit captiva) ordnet Eilkurier Geschichten über Themen-Überlappung vor.
+- **captiva (optional):** vLLM mit Qwen3.8 27B, `http://captiva.fritz.box:8080` (immer voll qualifiziert),
+  Denkmodus aus über `EILKURIER_LLM_EXTRA_BODY={"chat_template_kwargs":{"enable_thinking":false}}`. captiva wird
+  mit guitar-vision geteilt: eine Anfrage zur Zeit, nichts an captiva ändern.
+- **Simulator:** `eilkurier simulator` spricht dieselbe API und antwortet regelbasiert. Damit laufen Tests,
+  Entwicklung und die Demo (`docker compose --profile demo up`) ohne GPU.
+- **Gegen Halluzinationen:** Zahlen in der Antwort müssen im Quelltext vorkommen, sonst wird die Antwort
+  verworfen (nach drei Versuchen bleibt der Artikel ein Auszug). Jede Meldung trägt Quelle und QR-Code.
+- Modelle, URLs und Zusatzparameter sind reine Konfiguration (`.env.example`).
+
+## Telegram-Bot
+
+- Jeder Leser hat in der Weboberfläche einen 6-stelligen **Verknüpfungscode**. Schickt man ihn dem Bot, ist
+  der Chat mit dem Leser verbunden.
+- Andere Nachrichten an den Bot werden **Leserbriefe** und erscheinen in der nächsten Ausgabe unter „Aus der
+  Familie“. `/ausgabe` schickt die neueste Ausgabe noch einmal.
+- Der Bot fragt per `getUpdates` ab; er braucht keine Erreichbarkeit von außen.
 
 ## Quellen (Ideen-Speicher)
 
-- **Nachrichten:** RSS/Atom mit Volltext; Presseportal (Polizei/Behörden der Region); Gemeinde- und
-  Vereinsseiten; Newsletter über ein eigenes IMAP-Postfach; YouTube-Kanäle (RSS + Transkript).
-- **Alltag:** DWD-Wetter und Warnungen (Bright Sky API), Pollenflug, Sonne und Mond, Spritpreise (Tankerkönig),
-  Bundesliga (OpenLigaDB), Müllabfuhr (ICS), Bahn-Störungen.
-- **Familie:** gemeinsamer Kalender (CalDAV/ICS) mit Terminen und Geburtstagen; **Leserbriefe**: Nachrichten
-  und Fotos an den Telegram-Bot erscheinen am nächsten Morgen unter „Aus der Familie“; „Vor 5 Jahren“ aus der
-  Fotosammlung (z. B. Immich).
-- **Unterhaltung:** „Heute vor … Jahren“, Namenstage, Rätselecke (Sudoku programmatisch, nicht per LLM),
-  saisonales Rezept.
-- **Haus:** Home-Assistant-Werte (PV-Ertrag, Verbrauch) als kleine Infografik.
+Umgesetzt: RSS/Atom mit Volltext, ICS-Kalender, DWD-Wetter (Bright Sky), Sonne und Mond, „Heute vor … Jahren“
+(Wikipedia), Leserbriefe. Der Katalog in der Weboberfläche enthält die geprüften Feeds aus dem alten Eilkurier.
 
-Jede Quelle ist ein Plugin mit einheitlicher Schnittstelle (`fetch() → Items`), damit neue Quellen ohne
-Umbau dazukommen.
+Ideen: Presseportal (Polizei/Behörden der Region), Newsletter über ein IMAP-Postfach, YouTube (RSS +
+Transkript), Pollenflug, Spritpreise (Tankerkönig), Bundesliga (OpenLigaDB), Müllabfuhr, Fotos an den Bot,
+„Vor 5 Jahren“ aus Immich, Rätselecke (Sudoku programmatisch), Home-Assistant-Werte als Infografik.
 
 ## Ausgabe-Dokument (Vertrag zwischen Redaktion und Satz)
 
-Die Redaktion erzeugt pro Leser und Tag ein JSON-Dokument. Der Satz (`layout/`) kennt nur dieses Format.
-Referenz ist [`layout/sample/edition.json`](../layout/sample/edition.json):
+Die Redaktion (`edition.py`) erzeugt pro Leser und Tag ein JSON-Dokument. Der Satz (`layout/`) und die
+HTML-Fassung kennen nur dieses Format. Referenz ist [`layout/sample/edition.json`](../layout/sample/edition.json):
 
 - `masthead`, `edition` (Nummer, Datum, Leser, `lang`), `style` (`theme`, `paper`, `font_scale`, `paper_tint`)
 - `weather`, `sections` (Rubrikenleiste)
 - `lead` und `stories[]`: `headline`, `subhead`, `body[]` (Absätze), `source`, `published`, `url`,
-  `teaser_only`, `size` (`large|medium|small`), `background[]` („Was bisher geschah“)
-- `briefs[]`, `family[]`, `almanac{}`
-
-Später wird daraus ein Pydantic-Modell, und das JSON-Schema wird in die OpenAPI-Beschreibung übernommen.
+  `teaser_only`, `excerpt`, `size` (`large|medium|small`), `background[]` („Was bisher geschah“)
+- `briefs[]`, `calendar[]`, `family[]`, `almanac{}`
 
 ## Gestaltung
 
@@ -118,23 +118,20 @@ Später wird daraus ein Pydantic-Modell, und das JSON-Schema wird in die OpenAPI
   `feuilleton` (Playfair Display, ruhiger) und `grossdruck` (13 pt, zwei Spalten, dunklerer Nebentext).
   Weitere Stile sind Einträge in `layout/themes.typ`.
 - **Papierton** (`paper_tint`) ist für Bildschirme gedacht und lässt sich zum Ausdrucken abschalten.
-- **Farben** werden auf Kontrast ≥ 4,5 : 1 gegen den Papierton geprüft. Der alte Grauton `#8b8b8b` (3,3 : 1)
-  wurde ersetzt.
-- **Bilder** (geplant): werden vor dem Satz serverseitig in Graustufen/Sepia umgerechnet, denn Typst hat keine
-  Bildfilter. Alternativtext liefert die Quelle oder das LLM.
-- **Weboberfläche** (geplant): SvelteKit, statisch gebaut und vom `app`-Container ausgeliefert. Mobile-First für
-  Smartphone und iPad, Paraglide für I18n, API-Client aus der OpenAPI-Beschreibung generiert. Farben aus der
-  Marke: Papier `#f9f7f1`, Tinte `#2f2f2f`, Akzent `#6b2f1b`.
+- **Farben** halten Kontrast ≥ 4,5 : 1, im Druck und in beiden Farbschemata der Weboberfläche.
+- **Weboberfläche:** SvelteKit (Svelte 5), statisch gebaut und vom `app`-Container ausgeliefert. Mobile-First,
+  Hell/Dunkel nach Systemeinstellung, Touch-Ziele ≥ 44 px, sichtbarer Fokus, Sprunglink, Live-Regionen für
+  Meldungen, `prefers-reduced-motion`. Texte de/en in `frontend/src/lib/i18n.svelte.ts`. Der API-Client ist aus
+  `frontend/openapi.json` generiert; ein Test stellt sicher, dass diese Datei zur API passt.
 
 ## Fahrplan
 
-1. **Meilenstein 0 – Fundament** ✅ Repository, Drucklayout mit drei Stilen, API mit Beispielausgabe,
-   Container-Image, CI.
-2. **Meilenstein 1 – Erste echte Ausgabe:** Postgres-Schema und Migrationen (Alembic), Feeds sammeln und
-   Volltext laden, Anreicherung über captiva mit extraktivem Ersatz, eine Ausgabe für eine Person,
-   Zustellung per Telegram, Zeitplan.
-3. **Meilenstein 2 – Reporter:** Story-Zuordnung und „Was bisher geschah“, Auswahl nach Interessen.
-4. **Meilenstein 3 – Familie:** Weboberfläche (Profile, Interessen, Quellen, Stil, Zustellzeit, Archiv),
-   E-Mail-Zustellung, Leserbriefe über den Bot.
-5. **Danach:** weitere Quellen (Wetter, Kalender, Sport, …), HTML-Fassung jeder Ausgabe, Bilder,
-   Wochenendausgabe.
+1. **Meilenstein 0 – Fundament** ✅ Repository, Drucklayout mit drei Stilen, API, Container-Image, CI.
+2. **Meilenstein 1 – Erste echte Ausgabe** ✅ Schema und Migrationen, Sammeln, Volltext, Anreicherung mit
+   extraktivem Ersatz, Ausgaben je Leser, Zustellung per Telegram und E-Mail, Zeitplan.
+3. **Meilenstein 2 – Reporter** ✅ Geschichten und „Was bisher geschah“, Auswahl nach Interessen, Simulator.
+4. **Meilenstein 3 – Familie** ✅ Weboberfläche (Leser, Stil, Zustellung, Interessen, Quellen, Archiv,
+   HTML-Fassung, Leserbriefe, Systemstatus), Haushalts-PIN, Telegram-Verknüpfung.
+5. **Als Nächstes:** Inbetriebnahme auf Pi und Jetson; Prompts mit Gemma 3 4B an echten Artikeln
+   nachschärfen; Spaltenausgleich auf Folgeseiten verbessern.
+6. **Danach:** weitere Quellen (siehe oben), Bilder (serverseitig in Graustufen/Sepia), Wochenendausgabe.

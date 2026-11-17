@@ -163,7 +163,8 @@ def _enrichment(user: str) -> dict[str, Any]:
     text = user.split("TEXT:", 1)[-1].strip()
     first = sentences(text)[:1] or [title]
     words = title.split()
-    headline = title if len(words) <= 10 else " ".join(words[:8])
+    # Long titles: keep the first clause ("A: B" -> "A") instead of cutting mid-phrase.
+    headline = title if len(words) <= 12 else re.split(r":| – | - ", title, maxsplit=1)[0]
     return {
         "headline": headline.rstrip(" –-:,;") or "Meldung",
         "subhead": " ".join(first[0].split()[:12]),

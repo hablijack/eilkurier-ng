@@ -3,44 +3,65 @@
 <h1 align="center">Eilkurier</h1>
 <p align="center"><em>Nachrichten, wie Sie sein sollten.</em></p>
 
-Eilkurier ist ein persönlicher Zeitungsreporter für die Familie. Er liest RSS-Feeds und andere Quellen,
-lädt die vollständigen Artikel nach, verfolgt Geschichten über Tage hinweg („Was bisher geschah“) und setzt
-für jede Person jeden Morgen eine eigene **Zeitungsausgabe als PDF**: mit Titelkopf, Spalten, Initialen und
-QR-Codes zu den Originalquellen. Zugestellt wird per Telegram oder E-Mail, zu der Zeit, die jede Person selbst wählt.
+Eilkurier ist ein persönlicher Zeitungsreporter für die Familie. Er liest RSS-Feeds, Kalender und andere
+Quellen, lädt die vollständigen Artikel nach, verfolgt Geschichten über Tage hinweg („Was bisher geschah“)
+und setzt für jede Person eine eigene **Zeitungsausgabe als PDF**: mit Titelkopf, Spalten, Initialen, Wetter,
+Terminen, Leserbriefen und QR-Codes zu den Originalquellen. Zugestellt wird per Telegram oder E-Mail, zu der
+Zeit und an den Tagen, die jede Person selbst wählt.
 
-Alles läuft im Heimnetz. Der Dienst arbeitet in Containern auf einem Raspberry Pi, die Sprach- und
-Embedding-Modelle auf einem NVIDIA Jetson. Es werden keine Cloud-Dienste benötigt.
+Alles läuft im Heimnetz: der Dienst in Containern auf einem Raspberry Pi, das Sprachmodell (Gemma 3 4B) und
+die Embeddings (EmbeddingGemma) mit Ollama auf einem NVIDIA Jetson Orin Nano. Cloud-Dienste sind nicht nötig.
+Ist das Modell gerade nicht erreichbar, erscheint die Zeitung trotzdem; die Texte sind dann Auszüge.
 
-> **Status:** frühe Entwicklung. Vorhanden sind das Drucklayout (drei Stile), die API mit einer
-> Beispielausgabe, das Container-Image und die CI. Die Pipeline (Sammeln, Redigieren, Zustellen) folgt; siehe
-> [Architektur & Fahrplan](docs/architektur.md).
-
-## Ausprobieren
-
-Voraussetzung: [uv](https://docs.astral.sh/uv/).
-
-```bash
-uv sync
-uv run eilkurier render-sample --theme klassisch -o beispiel.pdf   # klassisch | feuilleton | grossdruck
-uv run uvicorn eilkurier.app:create_app --factory --reload --port 8080
-# → http://localhost:8080/api/v1/docs  und  http://localhost:8080/api/v1/samples/edition.pdf?theme=feuilleton
-```
+Details: [Architektur & Fahrplan](docs/architektur.md).
 
 ## Betrieb (Docker Compose, z. B. openmediavault-Compose-Plugin)
 
 ```bash
-cp .env.example .env    # Passwörter setzen
-docker compose up -d
+cp .env.example .env      # Passwort, Ort, Sprachmodell, Telegram/SMTP eintragen
+docker compose up -d      # postgres → migrate → app + worker
+# Weboberfläche: http://<pi>:8080
+```
+
+Auf dem Jetson:
+
+```bash
+OLLAMA_HOST=0.0.0.0 OLLAMA_CONTEXT_LENGTH=8192 ollama serve
+ollama pull gemma3:4b && ollama pull embeddinggemma
+```
+
+Ohne Sprachmodell-Hardware, mit simuliertem Modell und Beispielhaushalt:
+
+```bash
+# in .env: EILKURIER_LLM_URL=http://simulator:11434
+docker compose --profile demo up -d
+docker compose run --rm app eilkurier seed-demo
 ```
 
 Das Image `hablijack/eilkurier-ng` wird für `linux/arm64` und `linux/amd64` gebaut.
+
+## Entwicklung
+
+Voraussetzungen: [uv](https://docs.astral.sh/uv/), Node 22, Docker (für Postgres).
+
+```bash
+uv sync
+docker run -d --name ek-pg -e POSTGRES_PASSWORD=test -e POSTGRES_USER=test -p 55432:5432 pgvector/pgvector:pg17
+export EILKURIER_TEST_DATABASE_URL=postgresql+psycopg://test:test@localhost:55432/test
+uv run pytest                     # ohne die Variable laufen nur die Tests ohne Datenbank
+uv run eilkurier render-sample --theme grossdruck -o beispiel.pdf
+
+cd frontend && npm ci && npm run dev   # Weboberfläche mit Proxy auf die API (Port 8080)
+```
 
 ## Projektaufbau
 
 | Pfad | Inhalt |
 |---|---|
-| `src/eilkurier/` | Python-Dienst (FastAPI): API, Satz, später Pipeline-Worker |
+| `src/eilkurier/` | Python-Dienst: API (FastAPI), Worker-Pipeline, Reporter, Satz, Zustellung, Simulator |
+| `frontend/` | Weboberfläche (SvelteKit, statisch gebaut) |
 | `layout/` | Typst-Vorlagen der Druckausgabe, Stile, Beschriftungen (i18n), Beispielausgabe |
+| `prompts/` | Anweisungen an das Sprachmodell (de/en) |
 | `assets/` | Logo (SVG) und Schriften (alle SIL Open Font License) |
 | `docs/` | Architektur, Entscheidungen, Fahrplan |
 

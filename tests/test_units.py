@@ -11,7 +11,7 @@ from eilkurier.collect import extract_fulltext
 from eilkurier.edition import date_label
 from eilkurier.llm import LLM, BadAnswer, Unavailable
 from eilkurier.reporter import ENRICH_SCHEMA, validate_enrichment
-from eilkurier.text import sentences, shorten, strip_html
+from eilkurier.text import looks_scrambled, sentences, shorten, strip_html
 
 # --- text ---------------------------------------------------------------------------------------
 
@@ -60,6 +60,16 @@ def test_rejects_consent_wall() -> None:
         + "</p></article></body></html>"
     )
     assert extract_fulltext(wall) is None
+
+
+def test_detects_scrambled_paywall_text() -> None:
+    scrambled = (
+        "Aciq jqc 8500 icjc Mqlcjiclqäiic ljc 2032: Ajic icjc Aijqjc qcq Djiqcqcxjcccq ji Yjqqcljq icjci. "
+        * 5
+    )
+    assert looks_scrambled(scrambled)
+    assert not looks_scrambled(PARAGRAPH * 2)
+    assert extract_fulltext(f"<html><body><article><p>{scrambled}</p></article></body></html>") is None
 
 
 def test_rejects_teaser_page() -> None:

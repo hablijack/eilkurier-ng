@@ -11,39 +11,51 @@ The project language is German (docs, UI, editions). Code, identifiers and code 
 
 ```bash
 uv sync                                         # install (Python 3.13, uv-managed)
+# DB tests need Postgres+pgvector; without this variable they are skipped:
+docker run -d --name ek-pg -e POSTGRES_USER=test -e POSTGRES_PASSWORD=test -p 55432:5432 pgvector/pgvector:pg17
+export EILKURIER_TEST_DATABASE_URL=postgresql+psycopg://test:test@localhost:55432/test
 uv run pytest                                   # all tests
 uv run pytest tests/test_render.py::test_english_edition_renders   # single test
 uv run ruff check . && uv run ruff format .     # lint + format (CI runs `ruff format --check`)
 uv run eilkurier render-sample --theme grossdruck -o out.pdf        # typeset the sample edition
+uv run eilkurier simulator --port 11434         # fake OpenAI-compatible LLM (no GPU), for dev/demo
+uv run eilkurier tick                           # one worker pass (collect, fulltext, reporter, editions)
 uv run uvicorn eilkurier.app:create_app --factory --reload --port 8080   # API, docs at /api/v1/docs
-docker build -t eilkurier-ng:dev .              # image; the build pre-fetches Typst packages
+cd frontend && npm ci && npm run check && npm run dev   # web UI (proxies /api to :8080)
+docker build -t eilkurier-ng:dev .              # image (web UI + Python); pre-fetches Typst packages
 ```
+
+After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd frontend && npm run api)`.
+`tests/test_api.py::test_web_ui_client_matches_api` fails until you do.
 
 ## Architecture
 
-- **Pipeline (planned, see docs):** collect → full text (trafilatura) → enrich once per article (summary,
-  facts, topic tags) → assign to a story (LLM picks an open story or opens a new one; no embeddings for now) →
-  per-reader selection (no LLM) → per-reader editing → typeset → deliver. Keep LLM tasks small, with
-  structured JSON-schema output and the source text in context.
-- **The LLM is usually unavailable, and the design must treat that as normal.** It runs on `captiva`, a
-  manually powered desktop: vLLM, OpenAI-compatible, `http://captiva.fritz.box:8080` (always use the FQDN),
-  model alias `qwen3.8` (Qwen3.8 27B GPTQ-Int4). Enrichment queues until captiva answers `GET /v1/models`.
-  Editions are never delayed: un-enriched articles are typeset extractively. Call style as in
-  `../../guitar-vision-bootcamp/ingest/enrichment/llm.py`: temperature 0, `chat_template_kwargs.enable_thinking=false`,
-  strict `json_schema` response format, require `finish_reason == "stop"`, treat 429/502/503/504 and transport
-  errors as "unavailable, retry later".
-- **captiva is shared** with guitar-vision's enrichment. Send one request at a time and never change captiva
-  (vLLM config, services). **Announce to the user before any access to captiva** (HTTP or SSH), as that
-  project's rules require. Don't assume it is powered on. The Jetson Orin Nano is currently in use elsewhere
-  and is only an optional later backend.
+- **Processes:** one image; `app` (FastAPI REST API under `/api/v1` + the static SvelteKit build from
+  `EILKURIER_WEB_ROOT`), `worker` (`eilkurier worker`: one loop, 30 s tick, isolated steps: editions/deliveries,
+  Telegram poll, collect, fulltext, reporter with a time budget, housekeeping), `migrate` (Alembic, one-shot).
+  Compose: `docker-compose.yml`; profile `demo` adds the LLM simulator.
+- **Pipeline modules:** `collect.py` (RSS/ICS, trafilatura full text, consent/paywall/scrambled-text rejection)
+  → `reporter.py` (enrich once per article; story assignment: embedding/topic candidates, LLM picks one or 0)
+  → `edition.py` (per-reader selection without LLM, compose edition JSON) → `render.py` → `deliver.py`
+  (Telegram sendDocument / SMTP; bot link codes and letters via getUpdates).
+- **The LLM is usually unavailable, and the design must treat that as normal.** Target: Jetson Orin Nano with
+  Ollama (`gemma3:4b`, embeddings `embeddinggemma`). Work queues until `GET /v1/models` answers. Editions are
+  never delayed: un-enriched articles are typeset extractively and flagged `excerpt`. Strict `json_schema`
+  response format, `finish_reason == "stop"`, 429/502/503/504 and transport errors mean "retry later". Numbers
+  in LLM output must occur in the source text (`validate_enrichment`). Tests and the demo use the simulator.
+- **captiva** (vLLM, Qwen3.8 27B, `http://captiva.fritz.box:8080`, FQDN always) is only an optional trial backend:
+  it draws ~800 W and is usually off. It is shared with guitar-vision: **announce to the user before any access
+  to captiva** (HTTP or SSH), one request at a time, never change it. Needs
+  `EILKURIER_LLM_EXTRA_BODY={"chat_template_kwargs":{"enable_thinking":false}}` and no embedding model.
 - **Deployment constraints:** Docker Compose on a Raspberry Pi (arm64, 8 GB, already under load). Never run
-  models on the Pi. Home network only. `app` and the future `worker` share one image. Containers are stateless
-  and run with a read-only root FS as UID 10001: any state goes to Postgres (pgvector, also used as the job
+  models (or embeddings) on the Pi. Home network only. `app`, `worker` and `migrate` share one image.
+  Containers are stateless and run with a read-only root FS as UID 10001: any state goes to Postgres (pgvector, also used as the job
   queue). Don't add Redis or a broker. Images must build for `linux/arm64` and `linux/amd64`.
-- **Edition JSON is the contract** between editing and typesetting. `layout/sample/edition.json` is the
+- **Edition JSON is the contract** between editing, typesetting and the web UI's HTML view
+  (`frontend/src/lib/edition.ts`). `layout/sample/edition.json` is the
   reference document. `layout/main.typ` reads it from `sys.inputs.edition` (falling back to the sample), and
   `src/eilkurier/render.py` passes it in via `typst.compile(..., sys_inputs=...)`. If you change the schema,
-  update the sample, the docs section and the tests together.
+  update the sample, `edition.ts`, the docs section and the tests together.
 - **Typesetting** uses the `typst` Python package (no Typst CLI needed). Compile root is the repo root (or
   `EILKURIER_RESOURCE_ROOT`), so layout paths like `/assets/brand/rider.svg` are root-absolute. Fonts come
   only from `assets/fonts/`. Typst Universe packages (`droplet` for drop caps, `tiaoma` for QR codes) are
@@ -63,9 +75,17 @@ docker build -t eilkurier-ng:dev .              # image; the build pre-fetches T
 - To check a layout change visually, render PNGs:
   `typst.compile("layout/main.typ", root=".", font_paths=["assets/fonts"], format="png", ppi=110, output="page-{p}.png")`.
 
+## Web UI
+
+- `frontend/`: SvelteKit 2 + Svelte 5 runes, adapter-static SPA, typed client via openapi-fetch.
+  Strings in `src/lib/i18n.svelte.ts` (de/en, keys typed). Keep it mobile-first and WCAG 2.2 AA: labels on every
+  control, ≥ 44 px targets, colour tokens in `app.css` (light + dark). `npm run check` fails on a11y warnings.
+  Brand assets are copied from `assets/` by `scripts/sync-assets.mjs`; don't commit copies.
+
 ## Repo & CI
 
-GitHub `eilkurier-ng`. CircleCI runs ruff and pytest on every branch. On `main` it builds the multi-arch image
+GitHub `eilkurier-ng`. CircleCI runs ruff and pytest (with a pgvector service) plus `npm run check`/build on
+every branch. On `main` it builds the multi-arch image
 via buildx/QEMU and pushes `hablijack/eilkurier-ng:latest` and `:<sha7>` (needs project env vars
 `DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD`). The sibling directories `../eilkurier*` are the legacy
 2018–2022 implementation. They are reference material only: the masthead and newspaper styles came from

@@ -1,0 +1,1841 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Eilkurier API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health/live": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Live",
+        "operationId": "live_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Live Health Live Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Ready",
+        "operationId": "ready_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Ready Health Ready Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/session": {
+      "get": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Get Session State",
+        "operationId": "get_session_state_api_v1_session_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Login",
+        "operationId": "login_api_v1_session_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Logout",
+        "operationId": "logout_api_v1_session_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/v1/samples/edition.pdf": {
+      "get": {
+        "tags": [
+          "samples"
+        ],
+        "summary": "Sample Edition Pdf",
+        "description": "Typesets the bundled sample edition in the given theme (layout preview).",
+        "operationId": "sample_edition_pdf_api_v1_samples_edition_pdf_get",
+        "parameters": [
+          {
+            "name": "theme",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Theme",
+              "default": "klassisch"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sample edition as PDF",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/readers": {
+      "get": {
+        "tags": [
+          "readers"
+        ],
+        "summary": "List Readers",
+        "operationId": "list_readers_api_v1_readers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReaderOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Readers Api V1 Readers Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "readers"
+        ],
+        "summary": "Create Reader",
+        "operationId": "create_reader_api_v1_readers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReaderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReaderOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/readers/{reader_id}": {
+      "get": {
+        "tags": [
+          "readers"
+        ],
+        "summary": "Get Reader",
+        "operationId": "get_reader_api_v1_readers__reader_id__get",
+        "parameters": [
+          {
+            "name": "reader_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Reader Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReaderOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "readers"
+        ],
+        "summary": "Update Reader",
+        "operationId": "update_reader_api_v1_readers__reader_id__put",
+        "parameters": [
+          {
+            "name": "reader_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Reader Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReaderIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReaderOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "readers"
+        ],
+        "summary": "Delete Reader",
+        "operationId": "delete_reader_api_v1_readers__reader_id__delete",
+        "parameters": [
+          {
+            "name": "reader_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Reader Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/readers/{reader_id}/telegram-link": {
+      "post": {
+        "tags": [
+          "readers"
+        ],
+        "summary": "Renew Telegram Link",
+        "description": "New link code; the reader sends it to the bot. Also unlinks a previously linked chat.",
+        "operationId": "renew_telegram_link_api_v1_readers__reader_id__telegram_link_post",
+        "parameters": [
+          {
+            "name": "reader_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Reader Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReaderOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/readers/{reader_id}/interests": {
+      "put": {
+        "tags": [
+          "readers"
+        ],
+        "summary": "Replace Interests",
+        "operationId": "replace_interests_api_v1_readers__reader_id__interests_put",
+        "parameters": [
+          {
+            "name": "reader_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Reader Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InterestIO"
+                },
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReaderOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/readers/{reader_id}/sources": {
+      "put": {
+        "tags": [
+          "readers"
+        ],
+        "summary": "Replace Reader Sources",
+        "operationId": "replace_reader_sources_api_v1_readers__reader_id__sources_put",
+        "parameters": [
+          {
+            "name": "reader_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Reader Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReaderOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sources": {
+      "get": {
+        "tags": [
+          "sources"
+        ],
+        "summary": "List Sources",
+        "operationId": "list_sources_api_v1_sources_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SourceOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Sources Api V1 Sources Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "sources"
+        ],
+        "summary": "Create Source",
+        "operationId": "create_source_api_v1_sources_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sources/{source_id}": {
+      "put": {
+        "tags": [
+          "sources"
+        ],
+        "summary": "Update Source",
+        "operationId": "update_source_api_v1_sources__source_id__put",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "sources"
+        ],
+        "summary": "Delete Source",
+        "operationId": "delete_source_api_v1_sources__source_id__delete",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog": {
+      "get": {
+        "tags": [
+          "sources"
+        ],
+        "summary": "Source Catalog",
+        "description": "Suggested feeds (the classic Eilkurier list, checked 2026-11).",
+        "operationId": "source_catalog_api_v1_catalog_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogEntry"
+                  },
+                  "type": "array",
+                  "title": "Response Source Catalog Api V1 Catalog Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/editions": {
+      "get": {
+        "tags": [
+          "editions"
+        ],
+        "summary": "List Editions",
+        "operationId": "list_editions_api_v1_editions_get",
+        "parameters": [
+          {
+            "name": "reader_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Reader Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 30,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EditionSummary"
+                  },
+                  "title": "Response List Editions Api V1 Editions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/editions/{edition_id}": {
+      "get": {
+        "tags": [
+          "editions"
+        ],
+        "summary": "Get Edition",
+        "operationId": "get_edition_api_v1_editions__edition_id__get",
+        "parameters": [
+          {
+            "name": "edition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Edition Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/editions/{edition_id}/pdf": {
+      "get": {
+        "tags": [
+          "editions"
+        ],
+        "summary": "Edition Pdf",
+        "operationId": "edition_pdf_api_v1_editions__edition_id__pdf_get",
+        "parameters": [
+          {
+            "name": "edition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Edition Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The typeset edition",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/readers/{reader_id}/editions": {
+      "post": {
+        "tags": [
+          "editions"
+        ],
+        "summary": "Create Edition Now",
+        "description": "Build (or rebuild) today's edition for this reader right now; optionally deliver it.",
+        "operationId": "create_edition_now_api_v1_readers__reader_id__editions_post",
+        "parameters": [
+          {
+            "name": "reader_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Reader Id"
+            }
+          },
+          {
+            "name": "send",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Send"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditionSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/letters": {
+      "get": {
+        "tags": [
+          "letters"
+        ],
+        "summary": "List Letters",
+        "operationId": "list_letters_api_v1_letters_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LetterOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Letters Api V1 Letters Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "letters"
+        ],
+        "summary": "Create Letter",
+        "operationId": "create_letter_api_v1_letters_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LetterIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LetterOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/letters/{letter_id}": {
+      "delete": {
+        "tags": [
+          "letters"
+        ],
+        "summary": "Delete Letter",
+        "operationId": "delete_letter_api_v1_letters__letter_id__delete",
+        "parameters": [
+          {
+            "name": "letter_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Letter Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/status": {
+      "get": {
+        "tags": [
+          "status"
+        ],
+        "summary": "System Status",
+        "operationId": "system_status_api_v1_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CatalogEntry": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "added": {
+            "type": "boolean",
+            "title": "Added"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "category",
+          "added"
+        ],
+        "title": "CatalogEntry"
+      },
+      "EditionOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "reader_id": {
+            "type": "integer",
+            "title": "Reader Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "issue_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Issue Date"
+          },
+          "lead_headline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Headline"
+          },
+          "story_count": {
+            "type": "integer",
+            "title": "Story Count"
+          },
+          "edited_count": {
+            "type": "integer",
+            "title": "Edited Count"
+          },
+          "delivery_status": {
+            "type": "string",
+            "title": "Delivery Status"
+          },
+          "delivery_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Error"
+          },
+          "delivered_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivered At"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "reader_id",
+          "number",
+          "issue_date",
+          "lead_headline",
+          "story_count",
+          "edited_count",
+          "delivery_status",
+          "delivery_error",
+          "delivered_at",
+          "payload"
+        ],
+        "title": "EditionOut"
+      },
+      "EditionSummary": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "reader_id": {
+            "type": "integer",
+            "title": "Reader Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "issue_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Issue Date"
+          },
+          "lead_headline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Headline"
+          },
+          "story_count": {
+            "type": "integer",
+            "title": "Story Count"
+          },
+          "edited_count": {
+            "type": "integer",
+            "title": "Edited Count"
+          },
+          "delivery_status": {
+            "type": "string",
+            "title": "Delivery Status"
+          },
+          "delivery_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Error"
+          },
+          "delivered_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivered At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "reader_id",
+          "number",
+          "issue_date",
+          "lead_headline",
+          "story_count",
+          "edited_count",
+          "delivery_status",
+          "delivery_error",
+          "delivered_at"
+        ],
+        "title": "EditionSummary"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InterestIO": {
+        "properties": {
+          "term": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Term"
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": -2.0,
+            "title": "Weight",
+            "description": "Negative = please less of this topic",
+            "default": 1.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "term"
+        ],
+        "title": "InterestIO"
+      },
+      "LanguageModelStatus": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "embedding_model": {
+            "type": "string",
+            "title": "Embedding Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured",
+          "available",
+          "url",
+          "model",
+          "embedding_model"
+        ],
+        "title": "LanguageModelStatus"
+      },
+      "LetterIn": {
+        "properties": {
+          "author": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Author"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "author",
+          "text"
+        ],
+        "title": "LetterIn"
+      },
+      "LetterOut": {
+        "properties": {
+          "author": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Author"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "via": {
+            "type": "string",
+            "title": "Via"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "author",
+          "text",
+          "id",
+          "via",
+          "created_at"
+        ],
+        "title": "LetterOut"
+      },
+      "PipelineCounts": {
+        "properties": {
+          "articles_total": {
+            "type": "integer",
+            "title": "Articles Total"
+          },
+          "fulltext_pending": {
+            "type": "integer",
+            "title": "Fulltext Pending"
+          },
+          "enrichment_pending": {
+            "type": "integer",
+            "title": "Enrichment Pending"
+          },
+          "enriched": {
+            "type": "integer",
+            "title": "Enriched"
+          },
+          "stories_open": {
+            "type": "integer",
+            "title": "Stories Open"
+          }
+        },
+        "type": "object",
+        "required": [
+          "articles_total",
+          "fulltext_pending",
+          "enrichment_pending",
+          "enriched",
+          "stories_open"
+        ],
+        "title": "PipelineCounts"
+      },
+      "ReaderIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "de",
+              "en"
+            ],
+            "title": "Language",
+            "default": "de"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme",
+            "default": "klassisch"
+          },
+          "paper": {
+            "type": "string",
+            "enum": [
+              "a4",
+              "a5",
+              "a3"
+            ],
+            "title": "Paper",
+            "default": "a4"
+          },
+          "font_scale": {
+            "type": "number",
+            "maximum": 1.6,
+            "minimum": 0.8,
+            "title": "Font Scale",
+            "default": 1.0
+          },
+          "paper_tint": {
+            "type": "boolean",
+            "title": "Paper Tint",
+            "default": true
+          },
+          "story_count": {
+            "type": "integer",
+            "maximum": 15.0,
+            "minimum": 3.0,
+            "title": "Story Count",
+            "default": 8
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "telegram",
+              "email",
+              "none"
+            ],
+            "title": "Channel",
+            "default": "none"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "delivery_time": {
+            "type": "string",
+            "format": "time",
+            "title": "Delivery Time",
+            "default": "06:00:00"
+          },
+          "delivery_days": {
+            "items": {
+              "type": "integer",
+              "maximum": 7.0,
+              "minimum": 1.0
+            },
+            "type": "array",
+            "title": "Delivery Days"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ReaderIn"
+      },
+      "ReaderOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "de",
+              "en"
+            ],
+            "title": "Language",
+            "default": "de"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme",
+            "default": "klassisch"
+          },
+          "paper": {
+            "type": "string",
+            "enum": [
+              "a4",
+              "a5",
+              "a3"
+            ],
+            "title": "Paper",
+            "default": "a4"
+          },
+          "font_scale": {
+            "type": "number",
+            "maximum": 1.6,
+            "minimum": 0.8,
+            "title": "Font Scale",
+            "default": 1.0
+          },
+          "paper_tint": {
+            "type": "boolean",
+            "title": "Paper Tint",
+            "default": true
+          },
+          "story_count": {
+            "type": "integer",
+            "maximum": 15.0,
+            "minimum": 3.0,
+            "title": "Story Count",
+            "default": 8
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "telegram",
+              "email",
+              "none"
+            ],
+            "title": "Channel",
+            "default": "none"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "delivery_time": {
+            "type": "string",
+            "format": "time",
+            "title": "Delivery Time",
+            "default": "06:00:00"
+          },
+          "delivery_days": {
+            "items": {
+              "type": "integer",
+              "maximum": 7.0,
+              "minimum": 1.0
+            },
+            "type": "array",
+            "title": "Delivery Days"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "telegram_linked": {
+            "type": "boolean",
+            "title": "Telegram Linked"
+          },
+          "telegram_link_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telegram Link Code"
+          },
+          "interests": {
+            "items": {
+              "$ref": "#/components/schemas/InterestIO"
+            },
+            "type": "array",
+            "title": "Interests"
+          },
+          "source_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Source Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "telegram_linked",
+          "telegram_link_code",
+          "interests",
+          "source_ids"
+        ],
+        "title": "ReaderOut"
+      },
+      "SessionIn": {
+        "properties": {
+          "pin": {
+            "type": "string",
+            "title": "Pin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pin"
+        ],
+        "title": "SessionIn"
+      },
+      "SessionOut": {
+        "properties": {
+          "pin_required": {
+            "type": "boolean",
+            "title": "Pin Required"
+          },
+          "authenticated": {
+            "type": "boolean",
+            "title": "Authenticated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pin_required",
+          "authenticated"
+        ],
+        "title": "SessionOut"
+      },
+      "SourceIn": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "rss",
+              "ics"
+            ],
+            "title": "Kind",
+            "default": "rss"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Category",
+            "default": "Allgemein"
+          },
+          "fetch_fulltext": {
+            "type": "boolean",
+            "title": "Fetch Fulltext",
+            "default": true
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url"
+        ],
+        "title": "SourceIn"
+      },
+      "SourceOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "fetch_fulltext": {
+            "type": "boolean",
+            "title": "Fetch Fulltext"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "last_fetched_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Fetched At"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "article_count": {
+            "type": "integer",
+            "title": "Article Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "url",
+          "category",
+          "fetch_fulltext",
+          "enabled",
+          "last_fetched_at",
+          "last_error"
+        ],
+        "title": "SourceOut"
+      },
+      "StatusOut": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "language_model": {
+            "$ref": "#/components/schemas/LanguageModelStatus"
+          },
+          "telegram": {
+            "type": "boolean",
+            "title": "Telegram"
+          },
+          "email": {
+            "type": "boolean",
+            "title": "Email"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/PipelineCounts"
+          },
+          "sources_with_errors": {
+            "type": "integer",
+            "title": "Sources With Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "language_model",
+          "telegram",
+          "email",
+          "counts",
+          "sources_with_errors"
+        ],
+        "title": "StatusOut"
+      },
+      "Theme": {
+        "type": "string",
+        "enum": [
+          "klassisch",
+          "feuilleton",
+          "grossdruck"
+        ],
+        "title": "Theme"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

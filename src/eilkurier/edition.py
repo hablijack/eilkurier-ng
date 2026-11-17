@@ -156,7 +156,14 @@ def _background(session: Session, article: Article, tz: ZoneInfo) -> list[str]:
         .order_by(Article.published_at.desc())
         .limit(BACKGROUND_EVENTS)
     ).all()
-    return [f"{a.published_at.astimezone(tz):%d.%m.}: {a.enrichment['event']}" for a in reversed(earlier)]
+    own = (article.enrichment or {}).get("event")
+    seen: set[str] = {own} if own else set()
+    events = []
+    for a in reversed(earlier):  # oldest first; identical events (syndicated copies) only once
+        if (event := a.enrichment["event"]) not in seen:
+            seen.add(event)
+            events.append(f"{a.published_at.astimezone(tz):%d.%m.}: {event}")
+    return events
 
 
 def story_item(session: Session, article: Article, size: str, tz: ZoneInfo) -> dict[str, Any]:

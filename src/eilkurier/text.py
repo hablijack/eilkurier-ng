@@ -66,3 +66,91 @@ def shorten(text: str, max_chars: int) -> list[str]:
         if used >= max_chars or len(kept) < len(sentences(para)):
             break
     return out
+
+
+_WORD = re.compile(r"[^\W\d_]+")
+_FUNCTION_WORDS = frozenset(
+    [
+        "der",
+        "die",
+        "das",
+        "und",
+        "in",
+        "zu",
+        "den",
+        "von",
+        "mit",
+        "ist",
+        "im",
+        "für",
+        "auf",
+        "nicht",
+        "ein",
+        "eine",
+        "sich",
+        "es",
+        "dem",
+        "des",
+        "auch",
+        "als",
+        "an",
+        "wie",
+        "bei",
+        "nach",
+        "um",
+        "aus",
+        "so",
+        "sie",
+        "er",
+        "wir",
+        "ich",
+        "hat",
+        "haben",
+        "wird",
+        "werden",
+        "noch",
+        "über",
+        "vor",
+        "oder",
+        "aber",
+        "mehr",
+        "nur",
+        "am",
+        "the",
+        "a",
+        "an",
+        "and",
+        "of",
+        "to",
+        "in",
+        "is",
+        "that",
+        "for",
+        "on",
+        "with",
+        "as",
+        "was",
+        "it",
+        "be",
+        "by",
+        "are",
+        "at",
+        "from",
+        "this",
+        "have",
+        "not",
+        "or",
+        "but",
+    ]
+)
+
+
+def looks_scrambled(text: str, min_words: int = 40) -> bool:
+    """True for obfuscated paywall text (letters shuffled so it is unreadable).
+
+    Real German or English prose is roughly a third function words; shuffled text has almost none.
+    """
+    words = [w.casefold() for w in _WORD.findall(text)]
+    if len(words) < min_words:
+        return False
+    return sum(w in _FUNCTION_WORDS for w in words) / len(words) < 0.08

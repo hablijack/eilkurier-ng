@@ -1,29 +1,63 @@
 # Eilkurier – Betrieb im Heimnetz (z. B. openmediavault Compose-Plugin auf dem Raspberry Pi).
-# Konfiguration über .env (Vorlage: .env.example).
+# Konfiguration über .env (Vorlage: .env.example). Ablauf beim Start:
+#   postgres (gesund) → migrate (einmalig, beendet sich) → app (Weboberfläche/API) + worker (Pipeline)
+# Demo/Entwicklung ohne Sprachmodell-Hardware:  docker compose --profile demo up
 name: eilkurier
 
+x-eilkurier: &eilkurier
+  image: hablijack/eilkurier-ng:${EILKURIER_VERSION:-latest}
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    TZ: ${TZ:-Europe/Berlin}
+    EILKURIER_DATABASE_URL: postgresql+psycopg://eilkurier:${POSTGRES_PASSWORD}@postgres:5432/eilkurier
+  # Stateless containers: read-only root filesystem, no privileges; all state lives in Postgres.
+  read_only: true
+  tmpfs:
+    - /tmp
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+
 services:
+  migrate:
+    <<: *eilkurier
+    restart: "no"
+    command: ["eilkurier", "migrate"]
+    healthcheck:
+      disable: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   app:
-    image: hablijack/eilkurier-ng:${EILKURIER_VERSION:-latest}
-    restart: unless-stopped
+    <<: *eilkurier
     ports:
       - "${EILKURIER_PORT:-8080}:8080"
-    environment:
-      TZ: ${TZ:-Europe/Berlin}
-    # Stateless container: read-only root filesystem, no privileges.
-    read_only: true
-    tmpfs:
-      - /tmp
-    cap_drop: [ALL]
-    security_opt:
-      - no-new-privileges:true
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     deploy:
       resources:
         limits:
           cpus: "1.0"
           memory: 512M
 
-  # Ab Meilenstein 1: Stammdaten, Artikel, Embeddings (pgvector) und Job-Warteschlange.
+  worker:
+    <<: *eilkurier
+    command: ["eilkurier", "worker"]
+    stop_grace_period: 60s
+    healthcheck:
+      disable: true
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
+
   postgres:
     image: pgvector/pgvector:pg17
     restart: unless-stopped
@@ -50,6 +84,15 @@ services:
       resources:
         limits:
           memory: 512M
+
+  # Nur mit --profile demo: simuliertes Sprachmodell (kein GPU nötig), für Vorführung und Tests.
+  # Dazu in .env: EILKURIER_LLM_URL=http://simulator:11434
+  simulator:
+    <<: *eilkurier
+    profiles: [demo]
+    command: ["eilkurier", "simulator", "--port", "11434"]
+    healthcheck:
+      disable: true
 
 volumes:
   db:

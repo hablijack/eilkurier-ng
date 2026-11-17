@@ -1,0 +1,339 @@
+/* Eilkurier web UI. Mobile-first; brand from the printed edition (paper, ink, brown accent).
+   All text colours meet WCAG 2.2 AA (>= 4.5:1) on their backgrounds in both themes. */
+
+@font-face {
+	font-family: 'Chomsky';
+	src: url('/fonts/Chomsky.otf') format('opentype');
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Bebas Neue';
+	src: url('/fonts/BebasNeue-Regular.ttf') format('truetype');
+	font-display: swap;
+}
+
+:root {
+	--paper: #f9f7f1;
+	--surface: #ffffff;
+	--ink: #2f2f2f;
+	--muted: #5c5c5c; /* 6.3:1 on paper */
+	--line: #d9d3c4;
+	--accent: #6b2f1b; /* 10.4:1 on paper */
+	--accent-ink: #ffffff;
+	--ok: #1d6b34;
+	--warn: #8a4b00;
+	--danger: #9b2318;
+	--focus: #b4541f;
+	--radius: 10px;
+	--gap: 1rem;
+	--font-body: Georgia, 'Libertinus Serif', 'Times New Roman', serif;
+	--font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--font-label: 'Bebas Neue', 'Arial Narrow', sans-serif;
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--paper: #1c1a17;
+		--surface: #26231f;
+		--ink: #ece6da;
+		--muted: #b5ad9f; /* 7.9:1 on paper */
+		--line: #3d3832;
+		--accent: #e3a585; /* 8.6:1 on paper */
+		--accent-ink: #1c1a17;
+		--ok: #7fd18f;
+		--warn: #f0b46c;
+		--danger: #ff9b8f;
+		--focus: #f0b46c;
+		color-scheme: dark;
+	}
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	overflow-wrap: anywhere;
+	background: var(--paper);
+	color: var(--ink);
+	font: 1rem/1.55 var(--font-ui);
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-label);
+	font-weight: 400;
+	letter-spacing: 0.03em;
+	line-height: 1.1;
+	margin: 0 0 0.5em;
+}
+h1 {
+	font-size: 2rem;
+}
+h2 {
+	font-size: 1.6rem;
+}
+h3 {
+	font-size: 1.3rem;
+}
+
+a {
+	color: var(--accent);
+	text-underline-offset: 0.15em;
+}
+
+:focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: 2px;
+	border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	* {
+		transition: none !important;
+		animation: none !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+.visually-hidden {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+.skip-link {
+	position: absolute;
+	left: 0.5rem;
+	top: -3rem;
+	background: var(--accent);
+	color: var(--accent-ink);
+	padding: 0.6rem 1rem;
+	border-radius: var(--radius);
+	z-index: 10;
+}
+.skip-link:focus {
+	top: 0.5rem;
+}
+
+.container {
+	width: 100%;
+	max-width: 64rem;
+	margin: 0 auto;
+	padding: 0 1rem;
+}
+
+.stack > * + * {
+	margin-top: var(--gap);
+}
+
+.grid {
+	display: grid;
+	gap: var(--gap);
+	grid-template-columns: minmax(0, 1fr);
+}
+.grid > * {
+	min-width: 0;
+}
+@media (min-width: 48rem) {
+	.grid.two {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.grid.three {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+.card {
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	padding: 1rem;
+}
+.card.double {
+	border: 3px double var(--ink);
+}
+
+.muted {
+	color: var(--muted);
+}
+.small {
+	font-size: 0.875rem;
+}
+
+.badge {
+	display: inline-block;
+	font-size: 0.8rem;
+	padding: 0.1rem 0.5rem;
+	border-radius: 999px;
+	border: 1px solid currentColor;
+}
+.badge.ok {
+	color: var(--ok);
+}
+.badge.warn {
+	color: var(--warn);
+}
+.badge.danger {
+	color: var(--danger);
+}
+
+/* --- forms ------------------------------------------------------------------------------------ */
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+}
+.field > label,
+fieldset > legend {
+	font-weight: 600;
+}
+.hint {
+	font-size: 0.875rem;
+	color: var(--muted);
+}
+
+input[type='text'],
+input[type='email'],
+input[type='url'],
+input[type='password'],
+input[type='time'],
+input[type='number'],
+select,
+textarea {
+	font: inherit;
+	color: var(--ink);
+	background: var(--paper);
+	border: 1px solid var(--muted);
+	border-radius: 8px;
+	padding: 0.55rem 0.7rem;
+	min-height: 44px;
+	width: 100%;
+}
+textarea {
+	min-height: 6rem;
+	resize: vertical;
+}
+
+fieldset {
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	padding: 0.75rem 1rem 1rem;
+	margin: 0;
+}
+
+.check {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	min-height: 44px;
+	cursor: pointer;
+}
+.check input {
+	width: 1.25rem;
+	height: 1.25rem;
+	accent-color: var(--accent);
+	flex: none;
+}
+
+.days {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 1rem;
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	align-items: center;
+}
+.row.spread {
+	justify-content: space-between;
+}
+.row > .grow {
+	flex: 1 1 12rem;
+	min-width: 0;
+}
+
+/* --- buttons ---------------------------------------------------------------------------------- */
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+	min-height: 44px;
+	padding: 0.5rem 1rem;
+	font: 600 1rem var(--font-ui);
+	border-radius: 8px;
+	border: 2px solid var(--accent);
+	background: var(--accent);
+	color: var(--accent-ink);
+	cursor: pointer;
+	text-decoration: none;
+}
+.btn.secondary {
+	background: transparent;
+	color: var(--accent);
+}
+.btn.danger {
+	background: transparent;
+	color: var(--danger);
+	border-color: var(--danger);
+}
+.btn.small {
+	min-height: 36px;
+	padding: 0.25rem 0.7rem;
+	font-size: 0.9rem;
+}
+.btn:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+
+.alert {
+	border-left: 4px solid var(--accent);
+	background: var(--surface);
+	padding: 0.75rem 1rem;
+	border-radius: 0 var(--radius) var(--radius) 0;
+}
+.alert.error {
+	border-color: var(--danger);
+}
+
+ul.plain {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+ul.plain > li + li {
+	border-top: 1px solid var(--line);
+}
+ul.plain > li {
+	padding: 0.75rem 0;
+}
+
+.code {
+	font: 700 1.6rem/1 ui-monospace, 'SF Mono', Menlo, monospace;
+	letter-spacing: 0.2em;
+	padding: 0.4rem 0.8rem;
+	border: 2px dashed var(--accent);
+	border-radius: 8px;
+	display: inline-block;
+	user-select: all;
+}

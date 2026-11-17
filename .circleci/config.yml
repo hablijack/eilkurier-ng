@@ -4,6 +4,13 @@ jobs:
   test:
     docker:
       - image: cimg/python:3.13
+      - image: pgvector/pgvector:pg17
+        environment:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+    environment:
+      EILKURIER_TEST_DATABASE_URL: postgresql+psycopg://test:test@localhost:5432/test
     steps:
       - checkout
       - run:
@@ -25,10 +32,40 @@ jobs:
             uv run ruff check .
             uv run ruff format --check .
       - run:
-          name: Tests (incl. PDF/UA-1 typesetting of all themes)
+          name: Wait for Postgres
+          command: |
+            for i in $(seq 1 30); do
+              uv run python -c "import psycopg; psycopg.connect('postgresql://test:test@localhost:5432/test').close()" && exit 0
+              sleep 1
+            done
+            exit 1
+      - run:
+          name: Tests (pipeline against Postgres, API, PDF/UA-1 typesetting of all themes)
           command: uv run pytest --junitxml=test-results/junit.xml
       - store_test_results:
           path: test-results
+
+  web:
+    docker:
+      - image: cimg/node:22.12
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - npm-{{ checksum "frontend/package-lock.json" }}
+      - run:
+          name: Install
+          command: cd frontend && npm ci --no-audit --no-fund
+      - save_cache:
+          key: npm-{{ checksum "frontend/package-lock.json" }}
+          paths:
+            - ~/.npm
+      - run:
+          name: Typecheck + a11y lint (svelte-check, warnings fail the build)
+          command: cd frontend && npm run check
+      - run:
+          name: Build
+          command: cd frontend && npm run build
 
   image:
     machine:
@@ -54,8 +91,9 @@ workflows:
   build:
     jobs:
       - test
+      - web
       - image:
-          requires: [test]
+          requires: [test, web]
           filters:
             branches:
               only: main

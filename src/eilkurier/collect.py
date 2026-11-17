@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from eilkurier.db import Article, CalendarEvent, Source, SourceKind, Status
 from eilkurier.http import HostThrottle
 from eilkurier.settings import Settings
-from eilkurier.text import strip_html
+from eilkurier.text import looks_scrambled, strip_html
 
 log = logging.getLogger(__name__)
 
@@ -173,6 +173,8 @@ def extract_fulltext(html: str, url: str | None = None) -> str | None:
     lowered = text.casefold()
     if len(text) < 2500 and sum(marker in lowered for marker in WALL_MARKERS) >= 2:
         return None  # consent or pay wall, not the article
+    if looks_scrambled(text):
+        return None  # pay wall that ships the article with shuffled letters
     return text
 
 
