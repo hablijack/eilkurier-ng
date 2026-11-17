@@ -12,7 +12,7 @@ ausgedruckt.
 | Thema | Entscheidung |
 |---|---|
 | Betrieb | Docker Compose auf einem Raspberry Pi (arm64, 8 GB RAM, openmediavault 8). Der Pi ist bereits ausgelastet (Load ≈ 3): sparsam bleiben. |
-| KI | NVIDIA Jetson Orin Nano 8 GB im Heimnetz, Ollama mit OpenAI-kompatibler API. Sprachmodell und Embeddings laufen **nur** dort. |
+| KI | Primär **captiva** (Intel Arc Pro B70, 32 GB): vLLM mit **Qwen3.8 27B** (Alias `qwen3.8`), OpenAI-kompatibel unter `http://captiva.fritz.box:8080`. captiva ist ein **manuell eingeschalteter Desktop** und wird mit dem Enrichment von guitar-vision geteilt. Später optional der Jetson Orin Nano (derzeit belegt). Auf dem Pi laufen keine Modelle. |
 | Zugriff | Nur Heimnetz. Einfache Profilauswahl, optional mit PIN; austauschbar gestaltet. |
 | Leser | 6 Personen, jede mit eigenen Interessen, eigenem Stil, eigener Zustellzeit und eigenem Kanal. |
 | Code & Images | GitHub (`eilkurier-ng`), CircleCI, Docker Hub öffentlich (`hablijack/eilkurier-ng`, arm64 + amd64). |
@@ -30,16 +30,23 @@ ausgedruckt.
                     │     ▲                         │                                │
                     │  app   REST-API (FastAPI) + Weboberfläche (statisch)           │ ◀── Smartphone / iPad
                     └───────────────────────────────┼────────────────────────────────┘
-                                                    ▼
-                                    Jetson Orin Nano: Ollama (LLM + Embeddings)
+                                                    ▼ (nur wenn eingeschaltet)
+                              captiva: vLLM, Qwen3.8 27B  ·  später optional: Jetson
 ```
 
 - **app** und **worker** nutzen dasselbe Image mit unterschiedlichem Startbefehl. Sie halten keinen Zustand:
   Alles Veränderliche liegt in Postgres, erzeugte PDFs in Postgres oder einem Volume.
 - **postgres + pgvector** ist der einzige Speicher: Stammdaten, Artikel, Embeddings und die Job-Warteschlange
   (über `SELECT … FOR UPDATE SKIP LOCKED`). Redis oder einen Broker gibt es nicht.
-- **Jetson** ist ein externer Dienst, konfiguriert über eine URL. Ist er nicht erreichbar, bleiben Artikel
-  „unredigiert“ in der Warteschlange und werden nachgeholt; eine Ausgabe fällt notfalls auf Anreißer zurück.
+- **Das LLM ist ein externer Dienst, der oft nicht da ist.** Das ist der Normalfall, kein Fehler:
+  - Angereichert wird, **sobald** captiva erreichbar ist. Bis dahin warten neue Artikel in der Warteschlange,
+    es geht nichts verloren.
+  - Die Ausgabe erscheint **trotzdem pünktlich**. Nicht angereicherte Artikel werden *extraktiv* gesetzt
+    (die ersten Sätze des Volltexts, auf Länge gekürzt) und dezent markiert. Eine Ausgabe wartet nie auf das LLM.
+  - Für die Erreichbarkeit fragt der Worker `GET /v1/models` ab, höchstens einmal pro Minute, und nur, solange
+    Arbeit ansteht. Bei `429/502/503/504` oder Verbindungsfehlern zieht er sich mit wachsendem Abstand zurück.
+- **Rücksicht auf guitar-vision:** captiva bedient auch dessen Enrichment. Eilkurier schickt **eine Anfrage
+  zur Zeit**, begrenzt die Tokens pro Anfrage und ändert nie etwas an captiva (vLLM-Konfiguration, Dienste).
 
 ## Pipeline
 
@@ -47,25 +54,31 @@ ausgedruckt.
 |---|---|---|---|
 | 1. Sammeln | Feeds und andere Quellen abfragen (ETag/Last-Modified, höflich gedrosselt) | Pi | alle 30–60 min |
 | 2. Volltext | Artikelseite laden, Haupttext mit **trafilatura** extrahieren; bei Bezahlschranke `teaser_only` | Pi | pro neuem Artikel |
-| 3. Anreichern | **einmal pro Artikel**: Zusammenfassung, Kernfakten, Schlagworte (strukturiert als JSON), Embedding | Jetson | laufend, Warteschlange |
-| 4. Geschichten | Artikel per Embedding-Ähnlichkeit + Zeitfenster zu *Stories* bündeln; Story-Gedächtnis („Stand der Dinge“) fortschreiben | Pi + Jetson | laufend |
-| 5. Auswahl | Je Leser: Interessen-Embeddings × Artikel, Quellenvielfalt, Neuigkeitswert → Seitenplan | Pi (ohne LLM) | vor jeder Ausgabe |
-| 6. Redigieren | Aufmacher wählen, Texte auf Länge bringen, „Neu heute“ vs. „Was bisher geschah“, Ton je Leser | Jetson | vor jeder Ausgabe |
+| 3. Anreichern | **einmal pro Artikel**: Zusammenfassung, Kernfakten, Themen-Tags (strukturiert als JSON-Schema) | captiva | sobald erreichbar |
+| 4. Geschichten | Neuen Artikel einer offenen *Story* zuordnen oder eine neue eröffnen; Story-Gedächtnis („Stand der Dinge“) fortschreiben | captiva | sobald erreichbar |
+| 5. Auswahl | Je Leser: Themen-Tags × Interessen, Quellenvielfalt, Neuigkeitswert → Seitenplan | Pi (ohne LLM) | vor jeder Ausgabe |
+| 6. Redigieren | Texte auf Länge bringen, „Neu heute“ vs. „Was bisher geschah“, Ton je Leser; Ersatz: extraktiv | captiva, sonst Pi | vor jeder Ausgabe |
 | 7. Setzen | Ausgabe-JSON → Typst → PDF (PDF/UA-1), zusätzlich eine barrierefreie HTML-Fassung | Pi | vor jeder Ausgabe |
 | 8. Zustellen | Telegram-Bot oder SMTP zur gewünschten Uhrzeit | Pi | je Leser |
 
 Die teure LLM-Arbeit (Schritt 3) fällt **einmal pro Artikel** an, nicht pro Leser. Pro Leser bleibt nur wenig
-Redaktionsarbeit. Damit reicht ein kleines Modell auf dem Jetson auch für sechs Ausgaben.
+Redaktionsarbeit. So kommt das System auch mit wenigen Stunden captiva-Laufzeit am Tag aus.
 
-## KI-Modelle (Jetson Orin Nano, 8 GB geteilter Speicher)
+## KI-Modelle
 
-- **Sprachmodell:** Startpunkt **Gemma 3 4B** (QAT-Variante, int4, ≈ 3–4 GB). Begründung: sehr gutes Deutsch
-  für die Größe; Qwen-Modelle gleicher Größe sind stark im Schlussfolgern, schreiben aber weniger natürliches
-  Deutsch. 12B-Modelle passen nicht neben die Embeddings. Das Modell ist nur ein Konfigurationswert. Vor
-  Meilenstein 2 vergleichen wir 2–3 aktuelle Modelle mit echten Artikeln (Qualität, Halluzinationen, Tokens/s).
-- **Embeddings:** **EmbeddingGemma** (≈ 300 M Parameter, mehrsprachig) über denselben Ollama-Dienst.
-- **Gegen Halluzinationen:** kurze, eng gefasste Aufgaben, strukturierte Ausgabe (JSON-Schema), immer mit
-  Quelltext im Kontext. Zahlen und Namen werden gegen den Quelltext geprüft. Jede Meldung trägt Quelle und QR-Code.
+- **Sprachmodell:** **Qwen3.8 27B** auf captiva (vLLM, GPTQ-Int4; Alias `qwen3.8`). Ein 27B-Modell schreibt
+  deutlich besseres Deutsch als ein 4B-Modell und folgt Geschichten zuverlässiger. Aufrufe wie in
+  guitar-vision: `temperature: 0`, Denkmodus aus (`chat_template_kwargs.enable_thinking=false`), strikte
+  JSON-Schema-Ausgabe, `finish_reason` muss `stop` sein. Modellname und URL sind nur Konfigurationswerte, so dass
+  später auch der Jetson oder ein anderes Modell eingesetzt werden kann.
+- **Geschichten ohne Embeddings:** captiva stellt nur das Sprachmodell bereit, der Jetson ist belegt. Deshalb
+  ordnet das LLM selbst zu: Es bekommt den neuen Artikel und die offenen Stories (Titel + Stand der Dinge) und
+  antwortet strukturiert mit „gehört zu Story X“ oder „neue Story“. Das kann ein 27B-Modell gut. Embeddings
+  (pgvector) bleiben eine spätere Option, z. B. zur Vorauswahl, wenn die Zahl offener Stories wächst.
+- **Gegen Halluzinationen:** eng gefasste Aufgaben, strukturierte Ausgabe, immer mit Quelltext im Kontext.
+  Zahlen und Namen werden gegen den Quelltext geprüft. Jede Meldung trägt Quelle und QR-Code.
+- **Hostname:** immer voll qualifiziert `captiva.fritz.box` (in Containern wird die Suchdomäne nicht immer
+  angehängt; das ist in guitar-vision mit Alpine bereits schiefgegangen).
 
 ## Quellen (Ideen-Speicher)
 
@@ -118,9 +131,9 @@ Später wird daraus ein Pydantic-Modell, und das JSON-Schema wird in die OpenAPI
 1. **Meilenstein 0 – Fundament** ✅ Repository, Drucklayout mit drei Stilen, API mit Beispielausgabe,
    Container-Image, CI.
 2. **Meilenstein 1 – Erste echte Ausgabe:** Postgres-Schema und Migrationen (Alembic), Feeds sammeln und
-   Volltext laden, Anreicherung über den Jetson, eine Ausgabe für eine Person, Zustellung per Telegram, Zeitplan.
-3. **Meilenstein 2 – Reporter:** Story-Bündelung und „Was bisher geschah“, Modellvergleich auf dem Jetson,
-   Auswahl nach Interessen.
+   Volltext laden, Anreicherung über captiva mit extraktivem Ersatz, eine Ausgabe für eine Person,
+   Zustellung per Telegram, Zeitplan.
+3. **Meilenstein 2 – Reporter:** Story-Zuordnung und „Was bisher geschah“, Auswahl nach Interessen.
 4. **Meilenstein 3 – Familie:** Weboberfläche (Profile, Interessen, Quellen, Stil, Zustellzeit, Archiv),
    E-Mail-Zustellung, Leserbriefe über den Bot.
 5. **Danach:** weitere Quellen (Wetter, Kalender, Sport, …), HTML-Fassung jeder Ausgabe, Bilder,

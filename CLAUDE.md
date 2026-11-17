@@ -21,12 +21,22 @@ docker build -t eilkurier-ng:dev .              # image; the build pre-fetches T
 
 ## Architecture
 
-- **Pipeline (planned, see docs):** collect → full text (trafilatura) → enrich once per article on the Jetson
-  (summary/facts/embedding) → bundle into stories → per-reader selection (embeddings, no LLM) → per-reader
-  editing (LLM) → typeset → deliver. Only steps 3 and 6 use the LLM. Keep LLM tasks small and structured
-  (JSON output, source text in context), because the target model is ~4B parameters.
-- **Deployment constraints:** Docker Compose on a Raspberry Pi (arm64, 8 GB, already under load) plus an
-  NVIDIA Jetson Orin Nano 8 GB running Ollama (OpenAI-compatible API) for the LLM and embeddings. Never run
+- **Pipeline (planned, see docs):** collect → full text (trafilatura) → enrich once per article (summary,
+  facts, topic tags) → assign to a story (LLM picks an open story or opens a new one; no embeddings for now) →
+  per-reader selection (no LLM) → per-reader editing → typeset → deliver. Keep LLM tasks small, with
+  structured JSON-schema output and the source text in context.
+- **The LLM is usually unavailable, and the design must treat that as normal.** It runs on `captiva`, a
+  manually powered desktop: vLLM, OpenAI-compatible, `http://captiva.fritz.box:8080` (always use the FQDN),
+  model alias `qwen3.8` (Qwen3.8 27B GPTQ-Int4). Enrichment queues until captiva answers `GET /v1/models`.
+  Editions are never delayed: un-enriched articles are typeset extractively. Call style as in
+  `../../guitar-vision-bootcamp/ingest/enrichment/llm.py`: temperature 0, `chat_template_kwargs.enable_thinking=false`,
+  strict `json_schema` response format, require `finish_reason == "stop"`, treat 429/502/503/504 and transport
+  errors as "unavailable, retry later".
+- **captiva is shared** with guitar-vision's enrichment. Send one request at a time and never change captiva
+  (vLLM config, services). **Announce to the user before any access to captiva** (HTTP or SSH), as that
+  project's rules require. Don't assume it is powered on. The Jetson Orin Nano is currently in use elsewhere
+  and is only an optional later backend.
+- **Deployment constraints:** Docker Compose on a Raspberry Pi (arm64, 8 GB, already under load). Never run
   models on the Pi. Home network only. `app` and the future `worker` share one image. Containers are stateless
   and run with a read-only root FS as UID 10001: any state goes to Postgres (pgvector, also used as the job
   queue). Don't add Redis or a broker. Images must build for `linux/arm64` and `linux/amd64`.
