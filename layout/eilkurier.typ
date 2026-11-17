@@ -58,42 +58,52 @@
   })
 }
 
+// Horizontal page margin; shared with balanced-flow, which needs the text width.
+#let margin-x = 13mm
+
 // Multi-page column flow whose LAST page is balanced (Typst fills columns one after another, which
 // leaves the last page with full left and empty right columns). A breakable block of total height
 // natural/n spreads over the pages, so the last page only gets the remainder, split evenly across the
-// columns. Column breaks waste some space (sticky headings, unbreakable boxes); if the text overflows
-// the block, the next layout pass grows it by the overflow. Use once per document (fixed labels).
+// columns. Column breaks waste some space (sticky headings, unbreakable boxes): if the text overflows,
+// the next layout pass grows the block (twice at most); if it still overflows, plain columns are used
+// (they cannot overflow). Typst allows five layout passes, so this must settle quickly.
+// Uses fixed labels: once per document.
 #let balanced-flow(n, gutter, body) = if n <= 1 { body } else {
-  // layout() only for measuring: it is re-run per page around breakable content.
-  layout(size => {
-    let col = (size.width - gutter * (n - 1)) / n
-    [#metadata(measure(block(width: col, body)).height)<bflow-natural>]
-  })
   context {
-    let natural = query(<bflow-natural>)
-    if natural.len() == 0 {
-      // First pass: height unknown yet, set plain columns.
-      columns(n, gutter: gutter, [#body#metadata(none)<bflow-end>])
-      [#metadata(0pt)<bflow-extra>#metadata(none)<bflow-after>]
-      return
-    }
     let em = 1em.to-absolute()
-    let extra = query(<bflow-extra>).at(0, default: (value: 0pt)).value
+    let col = (page.width - 2 * margin-x - gutter * (n - 1)) / n
+    let natural = measure(block(width: col, body)).height
+    // State of the previous pass: (mode, extra), mode "balanced" | "grown" | "grown-more" | "plain".
+    // Column breaks waste space (sticky heads move along, boxes don't split); budget for it per page.
+    let pages = calc.ceil(natural / n / (page.height - 30mm)) + 1
+    let initial = pages * 4 * em // tuned on real editions: settles in the first pass for all themes
+    let prev = query(<bflow-state>).at(0, default: (value: ("balanced", initial))).value
+    let (mode, extra) = prev
     let ends = query(<bflow-end>)
     let afters = query(<bflow-after>)
-    if ends.len() > 0 and afters.len() > 0 {
+    if mode != "plain" and ends.len() > 0 and afters.len() > 0 {
       let e = ends.first().location().position()
       let a = afters.first().location().position()
       // The end marker sits below the block's bottom: the text overflowed in the last column.
-      if e.page == a.page and e.y + 0.5 * em > a.y { extra += (e.y - a.y) / n + 1.5 * em }
+      if e.page == a.page and e.y + 0.5 * em > a.y {
+        (mode, extra) = if mode == "balanced" {
+          ("grown", extra + (e.y - a.y) / n + 3 * em)
+        } else if mode == "grown" {
+          ("grown-more", extra + (e.y - a.y) + 6 * em)
+        } else { ("plain", extra) }
+      }
     }
-    [#metadata(extra)<bflow-extra>]
-    block(
-      height: natural.first().value / n + extra + 2 * em,
-      breakable: true,
-      below: 0pt,
-      columns(n, gutter: gutter, [#body#metadata(none)<bflow-end>]),
-    )
+    [#metadata((mode, extra))<bflow-state>]
+    if mode == "plain" {
+      columns(n, gutter: gutter, [#body#metadata(none)<bflow-end>])
+    } else {
+      block(
+        height: natural / n + extra + 2 * em,
+        breakable: true,
+        below: 0pt,
+        columns(n, gutter: gutter, [#body#metadata(none)<bflow-end>]),
+      )
+    }
     [#metadata(none)<bflow-after>]
   }
 }
@@ -257,7 +267,7 @@
   block(width: 100%, breakable: true, below: 1.4em)[
     #section-title(t, l.briefs)
     #for b in items [
-      #text(font: t.head-font, weight: t.head-weight, size: t.body-size * 1.25, if t.head-upper { upper(b.headline) } else { b.headline }) \
+      #block(sticky: true, below: 0.3em, text(font: t.head-font, weight: t.head-weight, size: t.body-size * 1.25, if t.head-upper { upper(b.headline) } else { b.headline }))
       #b.text #text(fill: t.muted, style: "italic", size: t.body-size * 0.85)[(#b.source)]
       #v(0.3em)
     ]
@@ -315,7 +325,7 @@
   )
   set page(
     paper: style.at("paper", default: "a4"),
-    margin: (x: 13mm, top: 13mm, bottom: 17mm),
+    margin: (x: margin-x, top: 13mm, bottom: 17mm),
     // Paper tint looks lovely on screens and tablets; switch it off when printing on real paper.
     fill: if tint { t.paper } else { none },
     background: {

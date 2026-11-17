@@ -208,7 +208,8 @@ class Edition(Base):
     reader_id: Mapped[int] = mapped_column(ForeignKey("readers.id", ondelete="CASCADE"), index=True)
     number: Mapped[int] = mapped_column(Integer)
     issue_date: Mapped[date] = mapped_column(Date)
-    payload: Mapped[dict[str, Any]] = mapped_column(JsonDict)
+    # Plain JSON, not JSONB: JSONB reorders keys, and the order is content (e.g. almanac entries).
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
     pdf: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True)
     status: Mapped[str] = mapped_column(String(16), default=Status.PENDING)
     delivery_status: Mapped[str] = mapped_column(String(16), default=Status.PENDING)

@@ -99,11 +99,12 @@ def score_article(article: Article, reader: Reader, now: datetime) -> float:
     return score
 
 
-def select_articles(session: Session, reader: Reader, now: datetime) -> list[Scored]:
+def select_articles(session: Session, reader: Reader, now: datetime, issue_date: date) -> list[Scored]:
     printed: set[int] = set()
     for payload in session.scalars(
         select(Edition.payload)
-        .where(Edition.reader_id == reader.id)
+        # Earlier issues only: rebuilding today's edition must not exclude its own articles.
+        .where(Edition.reader_id == reader.id, Edition.issue_date < issue_date)
         .order_by(Edition.issue_date.desc())
         .limit(7)
     ):
@@ -232,7 +233,7 @@ def compose(
     n = names(lang)
     number = (session.scalar(select(func.count()).where(Edition.reader_id == reader.id)) or 0) + 1
 
-    picked = select_articles(session, reader, now)
+    picked = select_articles(session, reader, now, issue_date)
     main, rest = picked[: reader.story_count], picked[reader.story_count :]
     lead = next((s for s in main if s.article.fulltext_status == Status.DONE), main[0] if main else None)
     others = [s for s in main if s is not lead]

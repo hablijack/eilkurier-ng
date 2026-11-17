@@ -54,8 +54,26 @@ def load_prompt(settings: Settings, name: str) -> str:
     return Path(path).read_text("utf-8")
 
 
+# "58 000 Euro" (space, no-break or narrow no-break space as thousands separator) -> "58000"
+_SPACED_THOUSANDS = re.compile(r"(?<=\d)[ \u00a0\u202f](?=\d{3}(?!\d))")
+_NUMBER_WORDS = {
+    "null": 0, "eins": 1, "ein": 1, "eine": 1, "zwei": 2, "drei": 3, "vier": 4, "fünf": 5, "sechs": 6,
+    "sieben": 7, "acht": 8, "neun": 9, "zehn": 10, "elf": 11, "zwölf": 12, "dutzend": 12,
+    "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8,
+    "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "dozen": 12,
+}  # fmt: skip
+_WORD = re.compile(r"[^\W\d_]+")
+
+
 def _numbers(text: str) -> set[str]:
+    text = _SPACED_THOUSANDS.sub("", text)
     return {n.replace(".", "").replace(",", "") for n in _NUMBER.findall(text)}
+
+
+def _source_numbers(text: str) -> set[str]:
+    """Numbers the source supports: digits plus small numbers written as words ("sechs" -> 6)."""
+    words = {str(_NUMBER_WORDS[w]) for w in _WORD.findall(text.casefold()) if w in _NUMBER_WORDS}
+    return _numbers(text) | words
 
 
 def validate_enrichment(raw: dict[str, Any], source_text: str) -> dict[str, Any]:
@@ -65,7 +83,7 @@ def validate_enrichment(raw: dict[str, Any], source_text: str) -> dict[str, Any]
     event = str(raw.get("event", "")).strip()
     if not headline or not summary or not event:
         raise BadAnswer("incomplete")
-    invented = (_numbers(" ".join([headline, *summary, event]))) - _numbers(source_text)
+    invented = _numbers(" ".join([headline, *summary, event])) - _source_numbers(source_text)
     if invented:
         raise BadAnswer(f"unsupported_numbers:{','.join(sorted(invented))}")
     topics = []
@@ -89,9 +107,10 @@ def enrich_article(llm: LLM, settings: Settings, article: Article) -> None:
     article.enrichment_attempts += 1
     try:
         raw = llm.ask(
-            load_prompt(settings, "enrich"), user, schema=ENRICH_SCHEMA, name="enrichment", max_tokens=700
+            load_prompt(settings, "enrich"), user, schema=ENRICH_SCHEMA, name="enrichment", max_tokens=1000
         )
-        article.enrichment = validate_enrichment(raw, f"{article.title}\n{text}")
+        # Check against the whole article: a figure from beyond the excerpt is still in the source.
+        article.enrichment = validate_enrichment(raw, f"{article.title}\n{article.best_text}")
         article.enrichment_status = Status.DONE
     except BadAnswer as exc:
         log.info("enrichment of article %s rejected: %s", article.id, exc)

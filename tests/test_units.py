@@ -109,6 +109,14 @@ def test_validate_enrichment_ignores_names_with_digits() -> None:
         validate_enrichment(_answer(summary=["Es gibt 5 neue Ladesäulen mit CO2-Bilanz."]), PARAGRAPH)
 
 
+def test_validate_enrichment_accepts_spaced_thousands_and_number_words() -> None:
+    source = (
+        "Sie zahlte etwa 58\u202f000 Euro, insgesamt 58 110,54 Euro. Es gab sechs Termine. Six weeks later."
+    )
+    answer = _answer(summary=["Rückzahlung: 58.110,54 Euro von rund 58.000 Euro; 6 Termine, 6 Wochen."])
+    assert validate_enrichment(answer, source)["summary"]
+
+
 def test_validate_enrichment_rejects_incomplete() -> None:
     with pytest.raises(BadAnswer):
         validate_enrichment(_answer(summary=[]), PARAGRAPH)

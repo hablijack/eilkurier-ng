@@ -99,6 +99,7 @@ def test_build_edition_now_and_download(client, scope) -> None:
 
     again = client.post(f"/api/v1/readers/{rid}/editions").json()
     assert again["id"] == summary["id"]  # rebuilt, not duplicated
+    assert again["lead_headline"] == "Brücke öffnet"  # and its own articles are still eligible
 
     listing = client.get("/api/v1/editions", params={"reader_id": rid}).json()
     assert [e["id"] for e in listing] == [summary["id"]]
