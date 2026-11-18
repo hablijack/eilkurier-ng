@@ -62,6 +62,18 @@ def test_rejects_consent_wall() -> None:
     assert extract_fulltext(wall) is None
 
 
+def test_rejects_long_bot_block_page() -> None:
+    # Seen at zeit.de: ~3 kB of legal text, longer than the length limit of the consent-wall check.
+    block = (
+        "<html><body><article><h1>Ihre Anfrage wurde blockiert.</h1><p>Wir schützen unsere Inhalte vor "
+        "unbefugten und automatisierten Zugriffen. Die Inhalte dürfen ohne vorherige Zustimmung nicht "
+        "automatisiert abgerufen werden. "
+        + "Bitte wenden Sie sich an unseren Kundenservice, wenn Sie glauben, dass dies ein Fehler ist. " * 40
+        + "</p></article></body></html>"
+    )
+    assert extract_fulltext(block) is None
+
+
 def test_detects_scrambled_paywall_text() -> None:
     scrambled = (
         "Aciq jqc 8500 icjc Mqlcjiclqäiic ljc 2032: Ajic icjc Aijqjc qcq Djiqcqcxjcccq ji Yjqqcljq icjci. "

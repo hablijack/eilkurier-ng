@@ -37,6 +37,16 @@ WALL_MARKERS = (
     "subscribe to continue",
     "subscribe to read",
 )
+# Bot blocks ("Ihre Anfrage wurde blockiert") can be long: matched at the start, regardless of length.
+BLOCK_MARKERS = (
+    "anfrage wurde blockiert",
+    "automatisierten zugriffen",
+    "automatisiert abgerufen",
+    "access denied",
+    "request blocked",
+    "you have been blocked",
+    "are you a robot",
+)
 
 
 def _entry_time(entry: feedparser.FeedParserDict) -> datetime | None:
@@ -171,6 +181,8 @@ def extract_fulltext(html: str, url: str | None = None) -> str | None:
     if not text or len(text) < MIN_FULLTEXT_CHARS:
         return None
     lowered = text.casefold()
+    if any(marker in lowered[:600] for marker in BLOCK_MARKERS):
+        return None  # the site blocked the automated request
     if len(text) < 2500 and sum(marker in lowered for marker in WALL_MARKERS) >= 2:
         return None  # consent or pay wall, not the article
     if looks_scrambled(text):
