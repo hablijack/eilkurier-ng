@@ -1,47 +1,43 @@
-# Eilkurier – Compose-Datei für das openmediavault-Compose-Plugin (Raspberry Pi "zeus").
-#
-# In der OMV-Oberfläche (Dienste → Compose → Dateien → Anlegen):
-#   Name "eilkurier", diese Datei als "Datei", den Inhalt von eilkurier.env als "Umgebung".
-# Das Plugin übergibt die Umgebung per --env-file; deshalb steht hier jeder Wert ausdrücklich
-# (kein env_file:). Pflichtwerte ohne Vorgabe brechen den Start mit einer Meldung ab.
-#
-# Ablauf beim Start: postgres (gesund) → migrate (einmalig) → app (Weboberfläche/API) + worker.
-# Das Sprachmodell läuft auf dem Jetson (deploy/jetson/), nie auf dem Pi.
+# Eilkurier – Compose-Datei zum Kopieren (openmediavault-Compose-Plugin oder `docker compose up -d`).
+# Alle Einstellungen stehen unten bei "x-settings". Vor dem ersten Start mindestens die mit ÄNDERN
+# markierten Werte anpassen. Ablauf: postgres → migrate (einmalig) → app (Weboberfläche) + worker.
 name: eilkurier
 
+x-settings: &settings
+  TZ: Europe/Berlin
+  # ÄNDERN: Datenbank-Passwort, derselbe Wert wie unten bei postgres → POSTGRES_PASSWORD
+  EILKURIER_DATABASE_URL: postgresql+psycopg://eilkurier:bitte-aendern@postgres:5432/eilkurier
+  # ÄNDERN: lange Zufallszeichenkette (signiert die Anmelde-Cookies), z. B. `openssl rand -hex 32`
+  EILKURIER_SECRET_KEY: bitte-lange-zufaellige-zeichenkette
+  # leer = Weboberfläche ohne PIN
+  EILKURIER_HOUSEHOLD_PIN: ""
+  EILKURIER_TIMEZONE: Europe/Berlin
+  # Sprache, in der der Reporter schreibt (de|en)
+  EILKURIER_LANGUAGE: de
+  # Ort für Wetter (DWD) und Sonnenzeiten
+  EILKURIER_LOCATION_NAME: Musterstadt
+  EILKURIER_LATITUDE: "49.45"
+  EILKURIER_LONGITUDE: "11.86"
+  # Sprachmodell auf dem Jetson (llama.cpp, deploy/jetson/); leer = Zeitungen nur mit Auszügen
+  EILKURIER_LLM_URL: http://jetson.fritz.box:8080
+  EILKURIER_LLM_MODEL: qwen3.5-9b
+  EILKURIER_EMBEDDING_MODEL: embeddinggemma
+  # Telegram-Bot-Token von @BotFather; leer = kein Telegram
+  EILKURIER_TELEGRAM_BOT_TOKEN: ""
+  # E-Mail-Versand; leerer Host = keine E-Mail
+  EILKURIER_SMTP_HOST: ""
+  EILKURIER_SMTP_PORT: "587"
+  EILKURIER_SMTP_USER: ""
+  EILKURIER_SMTP_PASSWORD: ""
+  EILKURIER_SMTP_FROM: Eilkurier <eilkurier@example.org>
+  EILKURIER_SMTP_STARTTLS: "true"
+
 x-eilkurier: &eilkurier
-  image: hablijack/eilkurier-ng:${EILKURIER_VERSION:-latest}
+  # latest = neuester Stand von main; zum Festnageln ein Commit-Kürzel von Docker Hub, z. B. :cc0dc62
+  image: hablijack/eilkurier-ng:latest
   restart: unless-stopped
-  environment: &eilkurier-env
-    TZ: ${TZ:-Europe/Berlin}
-    EILKURIER_DATABASE_URL: postgresql+psycopg://eilkurier:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD setzen}@postgres:5432/eilkurier
-    # Haushalt
-    EILKURIER_SECRET_KEY: ${EILKURIER_SECRET_KEY:?EILKURIER_SECRET_KEY setzen (lange Zufallszeichenkette)}
-    EILKURIER_HOUSEHOLD_PIN: ${EILKURIER_HOUSEHOLD_PIN:-}
-    EILKURIER_TIMEZONE: ${EILKURIER_TIMEZONE:-Europe/Berlin}
-    EILKURIER_LANGUAGE: ${EILKURIER_LANGUAGE:-de}
-    EILKURIER_LOCATION_NAME: ${EILKURIER_LOCATION_NAME:-Musterstadt}
-    EILKURIER_LATITUDE: ${EILKURIER_LATITUDE:-49.45}
-    EILKURIER_LONGITUDE: ${EILKURIER_LONGITUDE:-11.86}
-    # Sprachmodell (Jetson, llama.cpp); leere URL = Zeitungen nur mit Auszügen
-    EILKURIER_LLM_URL: ${EILKURIER_LLM_URL:-}
-    EILKURIER_LLM_MODEL: ${EILKURIER_LLM_MODEL:-qwen3.5-9b}
-    EILKURIER_EMBEDDING_MODEL: ${EILKURIER_EMBEDDING_MODEL:-embeddinggemma}
-    EILKURIER_LLM_TIMEOUT_SECONDS: ${EILKURIER_LLM_TIMEOUT_SECONDS:-300}
-    EILKURIER_LLM_EXTRA_BODY: ${EILKURIER_LLM_EXTRA_BODY:-{}}
-    # Zustellung
-    EILKURIER_TELEGRAM_BOT_TOKEN: ${EILKURIER_TELEGRAM_BOT_TOKEN:-}
-    EILKURIER_SMTP_HOST: ${EILKURIER_SMTP_HOST:-}
-    EILKURIER_SMTP_PORT: ${EILKURIER_SMTP_PORT:-587}
-    EILKURIER_SMTP_USER: ${EILKURIER_SMTP_USER:-}
-    EILKURIER_SMTP_PASSWORD: ${EILKURIER_SMTP_PASSWORD:-}
-    EILKURIER_SMTP_FROM: ${EILKURIER_SMTP_FROM:-Eilkurier <eilkurier@localhost>}
-    EILKURIER_SMTP_STARTTLS: ${EILKURIER_SMTP_STARTTLS:-true}
-    # Pipeline
-    EILKURIER_FETCH_INTERVAL_MINUTES: ${EILKURIER_FETCH_INTERVAL_MINUTES:-30}
-    EILKURIER_ARTICLE_RETENTION_DAYS: ${EILKURIER_ARTICLE_RETENTION_DAYS:-60}
-    EILKURIER_STORY_WINDOW_DAYS: ${EILKURIER_STORY_WINDOW_DAYS:-14}
-  # Zustandslose Container: Root-Dateisystem schreibgeschützt, keine Rechte; alles liegt in Postgres.
+  environment: *settings
+  # Zustandslos: Root-Dateisystem schreibgeschützt, keine Rechte; alles liegt in Postgres.
   read_only: true
   tmpfs:
     - /tmp
@@ -63,7 +59,8 @@ services:
   app:
     <<: *eilkurier
     ports:
-      - "${EILKURIER_PORT:-8080}:8080"
+      # Weboberfläche: http://<rechner>:8080 (linke Zahl ändern, falls der Port belegt ist)
+      - "8080:8080"
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -92,10 +89,11 @@ services:
     image: pgvector/pgvector:pg17
     restart: unless-stopped
     environment:
-      TZ: ${TZ:-Europe/Berlin}
+      TZ: Europe/Berlin
       POSTGRES_DB: eilkurier
       POSTGRES_USER: eilkurier
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD setzen}
+      # ÄNDERN: derselbe Wert wie oben in EILKURIER_DATABASE_URL
+      POSTGRES_PASSWORD: bitte-aendern
     # Bewusst klein: der Pi teilt sich CPU und RAM mit anderen Diensten.
     command: >
       postgres
@@ -104,8 +102,9 @@ services:
       -c work_mem=8MB
       -c max_connections=20
     volumes:
-      # Fester Pfad auf der SSD (OMV-Freigabe), z. B. /srv/dev-disk-by-uuid-XXXX/appdata/eilkurier/db
-      - ${EILKURIER_DB_DIR:?EILKURIER_DB_DIR auf einen Ordner der SSD setzen}:/var/lib/postgresql/data
+      # Docker-Volume (läuft überall). Auf der SSD statt dessen z. B.:
+      # - /srv/dev-disk-by-uuid-XXXX/appdata/eilkurier/db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U eilkurier -d eilkurier"]
       interval: 10s
@@ -115,3 +114,6 @@ services:
       resources:
         limits:
           memory: 512M
+
+volumes:
+  db:

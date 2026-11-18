@@ -17,6 +17,12 @@ Details: [Architektur & Fahrplan](docs/architektur.md).
 
 ## Betrieb (Docker Compose, z. B. openmediavault-Compose-Plugin)
 
+**openmediavault / einfachster Weg:** den Inhalt von [`deploy/omv/eilkurier.yml`](deploy/omv/eilkurier.yml) ins
+Compose-Plugin kopieren, die mit `ÄNDERN` markierten Werte anpassen, hochfahren. Die Datei enthält alle
+Einstellungen und startet so auch mit `docker compose -f eilkurier.yml up -d`.
+
+Aus dem Repository (Entwicklung, Demo):
+
 ```bash
 cp .env.example .env      # Passwort, Ort, Sprachmodell, Telegram/SMTP eintragen
 docker compose up -d      # postgres → migrate → app + worker
