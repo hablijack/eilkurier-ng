@@ -77,14 +77,34 @@ def test_reader_validation(client) -> None:
 
 def test_sources_and_catalog(client) -> None:
     catalog = client.get("/api/v1/catalog").json()
-    assert len(catalog) > 50 and not any(e["added"] for e in catalog)
-    entry = catalog[0]
-    assert client.post("/api/v1/sources", json=entry | {"kind": "rss"}).status_code == 201
-    assert client.post("/api/v1/sources", json=entry | {"kind": "rss"}).status_code == 409
-    assert next(e for e in client.get("/api/v1/catalog").json() if e["url"] == entry["url"])["added"]
+    categories = {t["category"] for t in catalog["topics"]}
+    assert len(catalog["sources"]) > 50 and {e["category"] for e in catalog["sources"]} == categories
+    assert all(e["description"] for e in catalog["sources"])
+    assert not any(e["source_id"] for e in catalog["sources"])
+    entry = catalog["sources"][0]
+    fields = {k: entry[k] for k in ("name", "url", "category")}
+    assert client.post("/api/v1/sources", json=fields | {"kind": "rss"}).status_code == 201
+    assert client.post("/api/v1/sources", json=fields | {"kind": "rss"}).status_code == 409
+    after = client.get("/api/v1/catalog").json()["sources"]
+    assert next(e for e in after if e["url"] == entry["url"])["source_id"]
     sources = client.get("/api/v1/sources").json()
     assert sources[0]["article_count"] == 0
     assert client.delete(f"/api/v1/sources/{sources[0]['id']}").status_code == 204
+
+
+def test_wizard_adopts_catalog_sources_in_order(client) -> None:
+    urls = [e["url"] for e in client.get("/api/v1/catalog").json()["sources"][:3]]
+    first = client.post("/api/v1/catalog/sources", json=[urls[2], urls[0]]).json()
+    assert [s["url"] for s in first] == [urls[2], urls[0]]
+    again = client.post("/api/v1/catalog/sources", json=urls).json()  # existing ones are reused
+    assert again[2]["id"] == first[0]["id"] and len(client.get("/api/v1/sources").json()) == 3
+    assert client.post("/api/v1/catalog/sources", json=["https://example.org/x"]).status_code == 422
+
+    rid = client.post("/api/v1/readers", json={"name": "Oma"}).json()["id"]
+    order = [again[1]["id"], again[2]["id"], again[0]["id"]]
+    assert client.put(f"/api/v1/readers/{rid}/sources", json=order).json()["source_ids"] == order
+    assert client.put(f"/api/v1/readers/{rid}/sources", json=order[::-1]).json()["source_ids"] == order[::-1]
+    assert client.get(f"/api/v1/readers/{rid}").json()["source_ids"] == order[::-1]
 
 
 def test_build_edition_now_and_download(client, scope) -> None:

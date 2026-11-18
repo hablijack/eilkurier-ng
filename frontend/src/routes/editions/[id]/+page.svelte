@@ -42,6 +42,7 @@
 
 <svelte:head><title>{paper ? `${paper.masthead.title} Nr. ${paper.edition.number}` : 'Eilkurier'}</title></svelte:head>
 
+<div class="container page-head">
 {#if error}
 	<p class="alert error" role="alert">{t('common.error', { message: error })}</p>
 {:else if !paper || !edition}
@@ -113,6 +114,7 @@
 		</div>
 	</div>
 {/if}
+</div>
 
 <style>
 	.toolbar {

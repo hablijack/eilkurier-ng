@@ -48,7 +48,7 @@
 
 <svelte:head><title>{t('letters.title')} · Eilkurier</title></svelte:head>
 
-<div class="stack">
+<div class="container narrow page-head stack">
 	<h1>{t('letters.title')}</h1>
 	<p class="hint">{t('letters.hint')}</p>
 

@@ -159,7 +159,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Replace Reader Sources */
+        /**
+         * Replace Reader Sources
+         * @description Set the reader's sources, most important first (the order weighs in article selection).
+         */
         put: operations["replace_reader_sources_api_v1_readers__reader_id__sources_put"];
         post?: never;
         delete?: never;
@@ -213,11 +216,31 @@ export interface paths {
         };
         /**
          * Source Catalog
-         * @description Suggested feeds (the classic Eilkurier list, checked 2026-11).
+         * @description Topics and suggested feeds for the wizard (the classic Eilkurier list, checked 2026-11).
          */
         get: operations["source_catalog_api_v1_catalog_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/catalog/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Adopt Catalog Sources
+         * @description Make sure the catalog entries with these URLs exist as sources; returns them in request order.
+         */
+        post: operations["adopt_catalog_sources_api_v1_catalog_sources_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -351,6 +374,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Catalog */
+        Catalog: {
+            /** Topics */
+            topics: components["schemas"]["CatalogTopic"][];
+            /** Sources */
+            sources: components["schemas"]["CatalogEntry"][];
+        };
         /** CatalogEntry */
         CatalogEntry: {
             /** Name */
@@ -359,8 +389,44 @@ export interface components {
             url: string;
             /** Category */
             category: string;
-            /** Added */
-            added: boolean;
+            /** Description */
+            description: string;
+            /**
+             * Language
+             * @default de
+             */
+            language?: string;
+            /**
+             * Group
+             * @description Sub-heading within a topic, e.g. the publisher
+             */
+            group?: string | null;
+            /**
+             * Recommended
+             * @default false
+             */
+            recommended?: boolean;
+            /**
+             * Source Id
+             * @description Set when the entry has been added as a source
+             */
+            source_id?: number | null;
+        };
+        /** CatalogTopic */
+        CatalogTopic: {
+            /**
+             * Category
+             * @description Section name; sources of this topic get it as `category`
+             */
+            category: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /** Icon */
+            icon: string;
+            /** Color */
+            color: string;
         };
         /** EditionOut */
         EditionOut: {
@@ -600,7 +666,10 @@ export interface components {
             telegram_link_code: string | null;
             /** Interests */
             interests: components["schemas"]["InterestIO"][];
-            /** Source Ids */
+            /**
+             * Source Ids
+             * @description Most important first
+             */
             source_ids: number[];
         };
         /** SessionIn */
@@ -1239,7 +1308,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CatalogEntry"][];
+                    "application/json": components["schemas"]["Catalog"];
+                };
+            };
+        };
+    };
+    adopt_catalog_sources_api_v1_catalog_sources_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string[];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -79,7 +79,10 @@ class Reader(Base):
     interests: Mapped[list["Interest"]] = relationship(
         back_populates="reader", cascade="all, delete-orphan", order_by="Interest.id"
     )
-    sources: Mapped[list["Source"]] = relationship(secondary="reader_sources", back_populates="readers")
+    # Ordered by importance (ReaderSource.position); set it with `set_reader_sources`.
+    sources: Mapped[list["Source"]] = relationship(
+        secondary="reader_sources", back_populates="readers", order_by="ReaderSource.position"
+    )
 
 
 class Interest(Base):
@@ -117,6 +120,7 @@ class ReaderSource(Base):
 
     reader_id: Mapped[int] = mapped_column(ForeignKey("readers.id", ondelete="CASCADE"), primary_key=True)
     source_id: Mapped[int] = mapped_column(ForeignKey("sources.id", ondelete="CASCADE"), primary_key=True)
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
 
 class Story(Base):

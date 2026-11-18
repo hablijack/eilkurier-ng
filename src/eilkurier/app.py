@@ -1,9 +1,7 @@
-import json
 import secrets
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
-from importlib import resources
 from pathlib import Path
 from typing import Annotated, Any
 from zoneinfo import ZoneInfo
@@ -16,12 +14,14 @@ from sqlalchemy.orm import Session, selectinload
 from starlette.middleware.sessions import SessionMiddleware
 
 from eilkurier import __version__
+from eilkurier.catalog import load_catalog, source_fields
 from eilkurier.db import (
     Article,
     Edition,
     Interest,
     Letter,
     Reader,
+    ReaderSource,
     Source,
     Status,
     Story,
@@ -33,7 +33,9 @@ from eilkurier.http import make_client
 from eilkurier.llm import LLM, BadAnswer, Unavailable
 from eilkurier.render import EditionRenderer, Theme
 from eilkurier.schemas import (
+    Catalog,
     CatalogEntry,
+    CatalogTopic,
     EditionOut,
     EditionSummary,
     InterestIO,
@@ -109,7 +111,7 @@ def reader_out(reader: Reader) -> ReaderOut:
         telegram_linked=reader.telegram_chat_id is not None,
         telegram_link_code=reader.telegram_link_code,
         interests=[InterestIO.model_validate(i) for i in reader.interests],
-        source_ids=sorted(s.id for s in reader.sources),
+        source_ids=[s.id for s in reader.sources],
     )
 
 
@@ -138,10 +140,6 @@ def load_reader(session: Session, reader_id: int) -> Reader:
     if reader is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "reader not found")
     return reader
-
-
-def load_catalog() -> list[dict[str, str]]:
-    return json.loads(resources.files("eilkurier").joinpath("catalog.json").read_text("utf-8"))
 
 
 # ---------------------------------------------------------------------------------------------
@@ -243,9 +241,17 @@ def replace_interests(
 
 @api.put("/readers/{reader_id}/sources", tags=["readers"])
 def replace_reader_sources(reader_id: int, body: list[int], session: SessionDep) -> ReaderOut:
-    reader = load_reader(session, reader_id)
-    reader.sources = list(session.scalars(select(Source).where(Source.id.in_(body))))
-    return reader_out(reader)
+    """Set the reader's sources, most important first (the order weighs in article selection)."""
+    load_reader(session, reader_id)
+    known = set(session.scalars(select(Source.id).where(Source.id.in_(body))))
+    ordered = list(dict.fromkeys(i for i in body if i in known))
+    session.query(ReaderSource).filter(ReaderSource.reader_id == reader_id).delete()
+    session.add_all(
+        ReaderSource(reader_id=reader_id, source_id=sid, position=pos) for pos, sid in enumerate(ordered)
+    )
+    session.flush()
+    session.expire_all()
+    return reader_out(load_reader(session, reader_id))
 
 
 # --- sources ----------------------------------------------------------------------------------
@@ -297,10 +303,30 @@ def delete_source(source_id: int, session: SessionDep) -> None:
 
 
 @api.get("/catalog", tags=["sources"])
-def source_catalog(session: SessionDep) -> list[CatalogEntry]:
-    """Suggested feeds (the classic Eilkurier list, checked 2026-11)."""
-    existing = set(session.scalars(select(Source.url)))
-    return [CatalogEntry(**entry, added=entry["url"] in existing) for entry in load_catalog()]
+def source_catalog(session: SessionDep) -> Catalog:
+    """Topics and suggested feeds for the wizard (the classic Eilkurier list, checked 2026-11)."""
+    existing = dict(session.execute(select(Source.url, Source.id)).all())
+    catalog = load_catalog()
+    return Catalog(
+        topics=[CatalogTopic(**t) for t in catalog["topics"]],
+        sources=[CatalogEntry(**e, source_id=existing.get(e["url"])) for e in catalog["sources"]],
+    )
+
+
+@api.post("/catalog/sources", tags=["sources"])
+def adopt_catalog_sources(body: list[str], session: SessionDep) -> list[SourceOut]:
+    """Make sure the catalog entries with these URLs exist as sources; returns them in request order."""
+    entries = {e["url"]: e for e in load_catalog()["sources"]}
+    unknown = [url for url in body if url not in entries]
+    if unknown:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, f"not in catalog: {unknown[0]}")
+    existing = {s.url: s for s in session.scalars(select(Source).where(Source.url.in_(body)))}
+    for url in dict.fromkeys(body):
+        if url not in existing:
+            existing[url] = Source(**source_fields(entries[url]))
+            session.add(existing[url])
+    session.flush()
+    return [_source_out(existing[url], 0) for url in dict.fromkeys(body)]
 
 
 # --- editions ---------------------------------------------------------------------------------

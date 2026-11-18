@@ -132,6 +132,28 @@ def test_bad_answers_give_up_after_three_attempts(session, settings) -> None:
 # --- edition ------------------------------------------------------------------------------------
 
 
+def test_more_important_sources_rank_first(session) -> None:
+    from eilkurier.db import ReaderSource
+    from eilkurier.edition import priority_bonus, select_articles
+
+    assert priority_bonus(0, 3) > priority_bonus(1, 3) > priority_bonus(2, 3) == 0
+    assert priority_bonus(0, 1) == 0
+    tech = add_source(session, name="Technik")
+    town = add_source(session, name="Gemeinde")
+    reader = add_reader(session, [], story_count=3)
+    add_article(session, tech, "Neuer Rechner", hours_ago=2)
+    add_article(session, town, "Neuer Bürgermeister", hours_ago=2)
+    now = datetime.now(UTC)
+    for order in ([tech, town], [town, tech]):
+        session.query(ReaderSource).filter_by(reader_id=reader.id).delete()
+        session.add_all(
+            ReaderSource(reader_id=reader.id, source_id=s.id, position=i) for i, s in enumerate(order)
+        )
+        session.flush()
+        picked = select_articles(session, reader, now, now.date())
+        assert picked[0].article.source_id == order[0].id
+
+
 def test_compose_selects_by_interest_and_skips_printed(session, settings, simulator_http) -> None:
     news = add_source(session, name="Zeitung")
     blog = add_source(session, name="Blog")

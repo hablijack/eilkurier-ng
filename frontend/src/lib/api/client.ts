@@ -6,14 +6,19 @@ export type ReaderIn = components['schemas']['ReaderIn'];
 export type Interest = components['schemas']['InterestIO'];
 export type Source = components['schemas']['SourceOut'];
 export type SourceIn = components['schemas']['SourceIn'];
+export type Catalog = components['schemas']['Catalog'];
 export type CatalogEntry = components['schemas']['CatalogEntry'];
+export type CatalogTopic = components['schemas']['CatalogTopic'];
 export type EditionSummary = components['schemas']['EditionSummary'];
 export type Edition = components['schemas']['EditionOut'];
 export type Letter = components['schemas']['LetterOut'];
 export type SystemStatus = components['schemas']['StatusOut'];
 
 /** Typed client generated from the backend's OpenAPI document (`npm run api`). */
-export const api = createClient<paths>({ baseUrl: '', credentials: 'same-origin' });
+export const api = createClient<paths>({
+	baseUrl: '',
+	credentials: 'same-origin'
+});
 
 /** Unwrap an openapi-fetch result or throw a readable error. */
 export async function unwrap<T>(

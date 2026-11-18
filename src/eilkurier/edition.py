@@ -24,6 +24,8 @@ MAX_PER_SOURCE = 3
 BRIEF_COUNT = 5
 BACKGROUND_EVENTS = 4
 TEXT_BUDGET = {"lead": 1200, "large": 700, "medium": 480, "small": 320}
+# The reader's most important source gets this bonus, the least important none (linear in between).
+SOURCE_PRIORITY_BONUS = 1.5
 
 _NAMES = {
     "de": {
@@ -74,6 +76,13 @@ def _matches(term: str, haystack: str) -> bool:
     return term.casefold() in haystack
 
 
+def priority_bonus(position: int, count: int) -> float:
+    """Bonus for the source's rank in the reader's list (position 0 = most important)."""
+    if count <= 1:
+        return 0.0
+    return SOURCE_PRIORITY_BONUS * (count - 1 - min(position, count - 1)) / (count - 1)
+
+
 def score_article(article: Article, reader: Reader, now: datetime) -> float:
     e = article.enrichment or {}
     haystack = " ".join(
@@ -109,18 +118,31 @@ def select_articles(session: Session, reader: Reader, now: datetime, issue_date:
         .limit(7)
     ):
         printed.update(payload.get("meta", {}).get("article_ids", []))
-    source_ids = select(ReaderSource.source_id).where(ReaderSource.reader_id == reader.id)
+    positions: dict[int, int] = {
+        sid: pos
+        for sid, pos in session.execute(
+            select(ReaderSource.source_id, ReaderSource.position).where(ReaderSource.reader_id == reader.id)
+        )
+    }
+    # Ties (e.g. sources added before ordering existed) share a rank.
+    ranks = {sid: rank for rank, sid in enumerate(sorted(positions, key=lambda i: (positions[i], i)))}
+    if len(set(positions.values())) <= 1:
+        ranks = dict.fromkeys(positions, 0)
     candidates = session.scalars(
         select(Article)
         .options(selectinload(Article.source))
         .where(
-            Article.source_id.in_(source_ids),
+            Article.source_id.in_(list(positions)),
             Article.published_at >= now - timedelta(hours=LOOKBACK_HOURS),
             Article.fulltext_status != Status.PENDING,
         )
     ).all()
     scored = sorted(
-        (Scored(a, score_article(a, reader, now)) for a in candidates if a.id not in printed),
+        (
+            Scored(a, score_article(a, reader, now) + priority_bonus(ranks[a.source_id], len(ranks)))
+            for a in candidates
+            if a.id not in printed
+        ),
         key=lambda s: s.score,
         reverse=True,
     )

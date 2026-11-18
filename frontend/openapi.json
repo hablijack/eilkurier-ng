@@ -460,6 +460,7 @@
           "readers"
         ],
         "summary": "Replace Reader Sources",
+        "description": "Set the reader's sources, most important first (the order weighs in article selection).",
         "operationId": "replace_reader_sources_api_v1_readers__reader_id__sources_put",
         "parameters": [
           {
@@ -665,7 +666,7 @@
           "sources"
         ],
         "summary": "Source Catalog",
-        "description": "Suggested feeds (the classic Eilkurier list, checked 2026-11).",
+        "description": "Topics and suggested feeds for the wizard (the classic Eilkurier list, checked 2026-11).",
         "operationId": "source_catalog_api_v1_catalog_get",
         "responses": {
           "200": {
@@ -673,11 +674,57 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "$ref": "#/components/schemas/Catalog"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/sources": {
+      "post": {
+        "tags": [
+          "sources"
+        ],
+        "summary": "Adopt Catalog Sources",
+        "description": "Make sure the catalog entries with these URLs exist as sources; returns them in request order.",
+        "operationId": "adopt_catalog_sources_api_v1_catalog_sources_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/CatalogEntry"
+                    "$ref": "#/components/schemas/SourceOut"
                   },
                   "type": "array",
-                  "title": "Response Source Catalog Api V1 Catalog Get"
+                  "title": "Response Adopt Catalog Sources Api V1 Catalog Sources Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -1004,6 +1051,30 @@
   },
   "components": {
     "schemas": {
+      "Catalog": {
+        "properties": {
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogTopic"
+            },
+            "type": "array",
+            "title": "Topics"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogEntry"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topics",
+          "sources"
+        ],
+        "title": "Catalog"
+      },
       "CatalogEntry": {
         "properties": {
           "name": {
@@ -1018,9 +1089,43 @@
             "type": "string",
             "title": "Category"
           },
-          "added": {
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "default": "de"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group",
+            "description": "Sub-heading within a topic, e.g. the publisher"
+          },
+          "recommended": {
             "type": "boolean",
-            "title": "Added"
+            "title": "Recommended",
+            "default": false
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id",
+            "description": "Set when the entry has been added as a source"
           }
         },
         "type": "object",
@@ -1028,9 +1133,43 @@
           "name",
           "url",
           "category",
-          "added"
+          "description"
         ],
         "title": "CatalogEntry"
+      },
+      "CatalogTopic": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "Section name; sources of this topic get it as `category`"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "icon": {
+            "type": "string",
+            "title": "Icon"
+          },
+          "color": {
+            "type": "string",
+            "title": "Color"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "title",
+          "description",
+          "icon",
+          "color"
+        ],
+        "title": "CatalogTopic"
       },
       "EditionOut": {
         "properties": {
@@ -1584,7 +1723,8 @@
               "type": "integer"
             },
             "type": "array",
-            "title": "Source Ids"
+            "title": "Source Ids",
+            "description": "Most important first"
           }
         },
         "type": "object",

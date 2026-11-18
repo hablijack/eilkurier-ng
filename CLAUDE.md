@@ -86,6 +86,12 @@ After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd
 ## Web UI
 
 - `frontend/`: SvelteKit 2 + Svelte 5 runes, adapter-static SPA, typed client via openapi-fetch.
+  No login: the start page asks "Wer liest?" and remembers the reader per device (`lib/household.svelte.ts`).
+  New readers go through the setup wizard (`routes/readers/[id]/setup`: topics → sources → order → delivery),
+  built from the catalog (`GET /catalog`, topics + feeds; `POST /catalog/sources` adopts entries). Avoid jargon
+  like "Feed"/"RSS" in reader-facing pages; the `/sources` admin page may use it.
+  Prettier has no config file: use `--use-tabs --single-quote --trailing-comma none --print-width 100`, and never
+  run it on the generated `lib/api/schema.d.ts`.
   Strings in `src/lib/i18n.svelte.ts` (de/en, keys typed). Keep it mobile-first and WCAG 2.2 AA: labels on every
   control, ≥ 44 px targets, colour tokens in `app.css` (light + dark). `npm run check` fails on a11y warnings.
   Brand assets are copied from `assets/` by `scripts/sync-assets.mjs`; don't commit copies.

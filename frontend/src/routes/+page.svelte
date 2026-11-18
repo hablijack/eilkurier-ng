@@ -1,25 +1,31 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { api, unwrap, type EditionSummary, type Reader, type SystemStatus } from '$lib/api/client';
+	import { api, unwrap, type EditionSummary, type Reader } from '$lib/api/client';
+	import Avatar from '$lib/components/Avatar.svelte';
 	import EditionList from '$lib/components/EditionList.svelte';
-	import { formatDate, t, weekdays, type MessageKey } from '$lib/i18n.svelte';
+	import Icon from '$lib/components/Icon.svelte';
+	import { chooseReader, household } from '$lib/household.svelte';
+	import { formatDate, t } from '$lib/i18n.svelte';
+	import { deliveryText } from '$lib/reader';
 
 	let readers = $state<Reader[]>([]);
 	let editions = $state<EditionSummary[]>([]);
-	let status = $state<SystemStatus | null>(null);
 	let loading = $state(true);
 	let error = $state('');
-	let newName = $state('');
 
 	const readerNames = $derived(Object.fromEntries(readers.map((r) => [r.id, r.name])));
 
+	const greeting = $derived.by(() => {
+		const hour = new Date().getHours();
+		return t(hour < 11 ? 'home.morning' : hour < 18 ? 'home.day' : 'home.evening');
+	});
+
 	async function load() {
 		try {
-			[readers, editions, status] = await Promise.all([
+			[readers, editions] = await Promise.all([
 				unwrap(api.GET('/api/v1/readers')),
-				unwrap(api.GET('/api/v1/editions', { params: { query: { limit: 10 } } })),
-				unwrap(api.GET('/api/v1/status'))
+				unwrap(api.GET('/api/v1/editions', { params: { query: { limit: 10 } } }))
 			]);
 		} catch (e) {
 			error = (e as Error).message;
@@ -28,24 +34,9 @@
 		}
 	}
 
-	async function createReader(event: SubmitEvent) {
-		event.preventDefault();
-		const reader = await unwrap(api.POST('/api/v1/readers', { body: { name: newName.trim() } }));
-		await goto(`/readers/${reader.id}`);
-	}
-
-	function deliveryText(reader: Reader): string {
-		if (!reader.active) return t('reader.inactive');
-		if (reader.channel === 'none') return t('reader.noDelivery');
-		const days =
-			reader.delivery_days?.length === 7
-				? t('days.daily')
-				: (reader.delivery_days ?? []).map((d) => weekdays()[d - 1]).join(', ');
-		return t('reader.delivery', {
-			days,
-			time: (reader.delivery_time ?? '06:00').slice(0, 5),
-			channel: t(`channel.${reader.channel}` as MessageKey)
-		});
+	async function open(reader: Reader) {
+		chooseReader(reader.id);
+		await goto(reader.source_ids.length ? `/readers/${reader.id}` : `/readers/${reader.id}/setup`);
 	}
 
 	function lastEdition(reader: Reader): EditionSummary | undefined {
@@ -55,113 +46,171 @@
 	onMount(load);
 </script>
 
-<svelte:head><title>{t('nav.overview')} · Eilkurier</title></svelte:head>
+<svelte:head><title>Eilkurier</title></svelte:head>
 
-<div class="stack">
-	<h1>{t('overview.title')}</h1>
+<section class="hero">
+	<div class="container">
+		<h1>{greeting}</h1>
+		<p class="lede">{t('home.who')}</p>
 
-	{#if loading}
-		<p aria-live="polite">{t('common.loading')}</p>
-	{:else if error}
-		<p class="alert error" role="alert">{t('common.error', { message: error })}</p>
-	{:else}
-		{#if readers.length === 0}<p>{t('overview.empty')}</p>{/if}
-		<ul class="grid two plain-grid" role="list">
-			{#each readers as reader (reader.id)}
-				{@const last = lastEdition(reader)}
-				<li class="card">
-					<h2><a href="/readers/{reader.id}">{reader.name}</a></h2>
-					<p class="muted">{deliveryText(reader)}</p>
-					<p class="small">
-						{t(`theme.${reader.theme}` as MessageKey)} · {reader.interests.map((i) => i.term).join(', ')}
-					</p>
-					{#if last}
-						<p class="small">
-							<a href="/editions/{last.id}"
-								>{t('reader.lastEdition', { number: last.number, date: formatDate(last.issue_date) })}</a
-							>
-						</p>
-					{/if}
+		{#if loading}
+			<p aria-live="polite">{t('common.loading')}</p>
+		{:else if error}
+			<p class="alert error" role="alert">{t('common.error', { message: error })}</p>
+		{:else}
+			<ul class="grid tiles readers" role="list">
+				{#each readers as reader (reader.id)}
+					{@const last = lastEdition(reader)}
+					<li>
+						<button
+							class="reader-tile"
+							type="button"
+							onclick={() => open(reader)}
+							aria-current={household.readerId === reader.id ? 'true' : undefined}
+						>
+							<Avatar id={reader.id} name={reader.name} size={64} />
+							<span class="reader-name">{reader.name}</span>
+							<span class="small muted">{deliveryText(reader)}</span>
+							{#if last}
+								<span class="small last">
+									{t('home.lastEdition', { date: formatDate(last.issue_date) })}
+									{#if last.lead_headline}<br /><em>{last.lead_headline}</em>{/if}
+								</span>
+							{:else if reader.source_ids.length === 0}
+								<span class="badge info">{t('home.notSetUp')}</span>
+							{/if}
+						</button>
+					</li>
+				{/each}
+				<li>
+					<a class="reader-tile new" href="/readers/new">
+						<span class="plus"><Icon name="plus" size={28} /></span>
+						<span class="reader-name">{t('home.new')}</span>
+						<span class="small muted">{t('home.newHint')}</span>
+					</a>
 				</li>
-			{/each}
-		</ul>
-
-		<form class="card row" onsubmit={createReader}>
-			<div class="field grow">
-				<label for="new-reader">{t('overview.newReader')}</label>
-				<input id="new-reader" type="text" bind:value={newName} placeholder={t('overview.name')} required maxlength="80" />
-			</div>
-			<button class="btn" type="submit">{t('overview.create')}</button>
-		</form>
-
-		<section class="card" aria-labelledby="latest">
-			<h2 id="latest">{t('overview.latest')}</h2>
-			{#if editions.length === 0}
-				<p class="muted">{t('overview.noEditions')}</p>
-			{:else}
-				<EditionList {editions} {readerNames} />
-			{/if}
-		</section>
-
-		{#if status}
-			{@const lm = status.language_model}
-			<section class="card" aria-labelledby="system">
-				<h2 id="system">{t('status.title')}</h2>
-				<dl class="status">
-					<dt>{t('status.model')}</dt>
-					<dd>
-						{#if !lm.configured}
-							<span class="badge warn">{t('status.model.none')}</span>
-						{:else if lm.available}
-							<span class="badge ok">{t('status.model.available', { model: lm.model })}</span>
-						{:else}
-							<span class="badge warn">{t('status.model.offline')}</span>
-						{/if}
-					</dd>
-					<dt>{t('status.telegram')}</dt>
-					<dd>{status.telegram ? t('status.configured') : t('status.notConfigured')}</dd>
-					<dt>{t('status.email')}</dt>
-					<dd>{status.email ? t('status.configured') : t('status.notConfigured')}</dd>
-					<dt>{t('status.articles')}</dt>
-					<dd>{status.counts.articles_total}</dd>
-					<dt>{t('status.fulltextPending')}</dt>
-					<dd>{status.counts.fulltext_pending}</dd>
-					<dt>{t('status.enrichmentPending')}</dt>
-					<dd>{status.counts.enrichment_pending}</dd>
-					<dt>{t('status.enriched')}</dt>
-					<dd>{status.counts.enriched}</dd>
-					<dt>{t('status.stories')}</dt>
-					<dd>{status.counts.stories_open}</dd>
-					<dt>{t('status.sourceErrors')}</dt>
-					<dd>
-						{#if status.sources_with_errors > 0}
-							<a href="/sources">{status.sources_with_errors}</a>
-						{:else}0{/if}
-					</dd>
-				</dl>
-				<p class="small muted">v{status.version}</p>
-			</section>
+			</ul>
 		{/if}
-	{/if}
-</div>
+	</div>
+</section>
+
+<section class="band" aria-labelledby="how">
+	<div class="container">
+		<h2 id="how">{t('home.howTitle')}</h2>
+		<ol class="grid three how" role="list">
+			<li class="card">
+				<span class="how-icon topic-blue"><Icon name="heart" /></span>
+				<h3>{t('home.how1')}</h3>
+				<p class="muted">{t('home.how1Text')}</p>
+			</li>
+			<li class="card">
+				<span class="how-icon topic-violet"><Icon name="pencil" /></span>
+				<h3>{t('home.how2')}</h3>
+				<p class="muted">{t('home.how2Text')}</p>
+			</li>
+			<li class="card">
+				<span class="how-icon topic-green"><Icon name="send" /></span>
+				<h3>{t('home.how3')}</h3>
+				<p class="muted">{t('home.how3Text')}</p>
+			</li>
+		</ol>
+	</div>
+</section>
+
+{#if editions.length}
+	<section class="container latest" aria-labelledby="latest">
+		<h2 id="latest">{t('home.latest')}</h2>
+		<div class="card">
+			<EditionList {editions} {readerNames} />
+		</div>
+	</section>
+{/if}
 
 <style>
-	.plain-grid {
-		list-style: none;
-		padding: 0;
-		margin: 0;
+	.hero {
+		padding: 2.25rem 0 2.5rem;
 	}
-	.card h2 a {
+	.lede {
+		color: var(--muted);
+		font-size: 1.15rem;
+		margin-bottom: 1.5rem;
+	}
+	.readers {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.reader-tile {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4rem;
+		width: 100%;
+		height: 100%;
+		min-height: 12rem;
+		padding: 1.25rem 1rem;
+		text-align: center;
+		font: inherit;
+		color: var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow);
+		cursor: pointer;
+		text-decoration: none;
+		transition:
+			box-shadow 0.15s,
+			border-color 0.15s,
+			transform 0.15s;
+	}
+	.reader-tile:hover {
+		border-color: var(--brand);
+		box-shadow: var(--shadow-lg);
+		transform: translateY(-2px);
 		color: var(--ink);
 	}
-	.status {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, auto);
-		gap: 0.4rem 1rem;
-		margin: 0;
+	.reader-tile[aria-current='true'] {
+		border-color: var(--brand);
+		border-width: 2px;
 	}
-	.status dd {
-		margin: 0;
-		text-align: right;
+	.reader-name {
+		font-size: 1.2rem;
+		font-weight: 700;
+	}
+	.last {
+		color: var(--muted);
+	}
+	.new {
+		border-style: dashed;
+		background: transparent;
+		box-shadow: none;
+	}
+	.plus {
+		display: grid;
+		place-items: center;
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		background: var(--brand-tint);
+		color: var(--brand);
+	}
+	.how {
+		list-style: none;
+		margin: 1rem 0 0;
+		padding: 0;
+	}
+	.how-icon {
+		display: inline-grid;
+		place-items: center;
+		width: 44px;
+		height: 44px;
+		border-radius: 12px;
+		background: var(--t-tint);
+		color: var(--t);
+		margin-bottom: 0.75rem;
+	}
+	.latest {
+		padding-top: 2rem;
 	}
 </style>

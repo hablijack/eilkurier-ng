@@ -1,16 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, unwrap, type CatalogEntry, type Source, type SourceIn } from '$lib/api/client';
+	import { api, unwrap, type Catalog, type Source, type SourceIn } from '$lib/api/client';
+	import { topicLook } from '$lib/reader';
 	import { formatDateTime, t } from '$lib/i18n.svelte';
 
 	let sources = $state<Source[]>([]);
-	let catalog = $state<CatalogEntry[]>([]);
+	let catalog = $state<Catalog>({ topics: [], sources: [] });
 	let error = $state('');
 	let message = $state('');
 	let form = $state<SourceIn>({ kind: 'rss', name: '', url: '', category: 'Allgemein', fetch_fulltext: true, enabled: true });
 
 	const categories = $derived([...new Set(sources.map((s) => s.category))]);
-	const catalogCategories = $derived([...new Set(catalog.map((c) => c.category))]);
+	const catalogCategories = $derived(catalog.topics.map((c) => c.category));
 
 	async function load() {
 		try {
@@ -60,15 +61,16 @@
 
 <svelte:head><title>{t('sourcesPage.title')} · Eilkurier</title></svelte:head>
 
-<div class="stack">
+<div class="container page-head stack">
 	<h1>{t('sourcesPage.title')}</h1>
+	<p class="lede">{t('sourcesPage.lede')}</p>
 	<p role="status" aria-live="polite">{message}</p>
 	{#if error}<p class="alert error" role="alert">{t('common.error', { message: error })}</p>{/if}
 
 	{#if sources.length === 0}<p class="muted">{t('sourcesPage.empty')}</p>{/if}
 	{#each categories as category (category)}
 		<section class="card" aria-labelledby="cat-{category}">
-			<h2 id="cat-{category}">{category}</h2>
+			<h2 id="cat-{category}">{topicLook(category, catalog.topics).title}</h2>
 			<ul class="plain">
 				{#each sources.filter((s) => s.category === category) as source (source.id)}
 					<li class="row spread">
@@ -135,18 +137,18 @@
 		<p class="hint">{t('sourcesPage.catalogHint')}</p>
 		{#each catalogCategories as category (category)}
 			<details>
-				<summary><strong>{category}</strong> ({catalog.filter((c) => c.category === category).length})</summary>
+				<summary><strong>{topicLook(category, catalog.topics).title}</strong> ({catalog.sources.filter((c) => c.category === category).length})</summary>
 				<ul class="plain">
-					{#each catalog.filter((c) => c.category === category) as entry (entry.url)}
+					{#each catalog.sources.filter((c) => c.category === category) as entry (entry.url)}
 						<li class="row spread">
 							<span class="grow">{entry.name}</span>
-							{#if entry.added}
+							{#if entry.source_id}
 								<span class="badge ok">{t('sourcesPage.added')}</span>
 							{:else}
 								<button
 									class="btn secondary small"
 									type="button"
-									onclick={() => add({ ...entry, kind: 'rss', fetch_fulltext: true, enabled: true })}
+									onclick={() => add({ name: entry.name, url: entry.url, category: entry.category, kind: 'rss', fetch_fulltext: true, enabled: true })}
 									>{t('common.add')}<span class="visually-hidden">: {entry.name}</span></button
 								>
 							{/if}

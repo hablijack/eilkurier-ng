@@ -42,7 +42,7 @@ class ReaderOut(ReaderIn):
     telegram_linked: bool
     telegram_link_code: str | None
     interests: list[InterestIO]
-    source_ids: list[int]
+    source_ids: list[int] = Field(description="Most important first")
 
 
 class SourceIn(BaseModel):
@@ -69,11 +69,28 @@ class SourceOut(BaseModel):
     article_count: int = 0
 
 
+class CatalogTopic(BaseModel):
+    category: str = Field(description="Section name; sources of this topic get it as `category`")
+    title: str
+    description: str
+    icon: str
+    color: str
+
+
 class CatalogEntry(BaseModel):
     name: str
     url: str
     category: str
-    added: bool
+    description: str
+    language: str = "de"
+    group: str | None = Field(None, description="Sub-heading within a topic, e.g. the publisher")
+    recommended: bool = False
+    source_id: int | None = Field(None, description="Set when the entry has been added as a source")
+
+
+class Catalog(BaseModel):
+    topics: list[CatalogTopic]
+    sources: list[CatalogEntry]
 
 
 class EditionSummary(BaseModel):

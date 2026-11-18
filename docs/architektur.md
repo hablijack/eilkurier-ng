@@ -96,7 +96,11 @@ Die teure LLM-Arbeit fällt **einmal pro Artikel** an, nicht pro Leser. Qwen3.5-
 ## Quellen (Ideen-Speicher)
 
 Umgesetzt: RSS/Atom mit Volltext, ICS-Kalender, DWD-Wetter (Bright Sky), Sonne und Mond, „Heute vor … Jahren“
-(Wikipedia), Leserbriefe. Der Katalog in der Weboberfläche enthält die geprüften Feeds aus dem alten Eilkurier.
+(Wikipedia), Leserbriefe. Der Katalog (`src/eilkurier/catalog.json`) enthält die geprüften Feeds aus dem alten
+Eilkurier, gegliedert in Themen mit Beschreibung, Symbol und Farbe. Daraus baut der Einrichtungs-Assistent die
+Zeitung eines Lesers: Themen wählen → Zeitungen wählen (Empfehlungen vorausgewählt) → nach Wichtigkeit sortieren →
+Zustellung und Stil. Die Reihenfolge (`reader_sources.position`) gibt bei der Artikelauswahl einen Bonus von bis zu
+1,5 Punkten für die wichtigste Quelle.
 
 Ideen: Presseportal (Polizei/Behörden der Region), Newsletter über ein IMAP-Postfach, YouTube (RSS +
 Transkript), Pollenflug, Spritpreise (Tankerkönig), Bundesliga (OpenLigaDB), Müllabfuhr, Fotos an den Bot,
@@ -124,7 +128,9 @@ HTML-Fassung kennen nur dieses Format. Referenz ist [`layout/sample/edition.json
 - **Spalten:** Die letzte Seite wird ausgeglichen gesetzt, Rubrik- und Artikelköpfe bleiben beim Text.
 - **Papierton** (`paper_tint`) ist für Bildschirme gedacht und lässt sich zum Ausdrucken abschalten.
 - **Farben** halten Kontrast ≥ 4,5 : 1, im Druck und in beiden Farbschemata der Weboberfläche.
-- **Weboberfläche:** SvelteKit (Svelte 5), statisch gebaut und vom `app`-Container ausgeliefert. Mobile-First,
+- **Weboberfläche:** SvelteKit (Svelte 5), statisch gebaut und vom `app`-Container ausgeliefert. Ohne Login:
+  Auf der Startseite wählt man „Wer liest?“, das Gerät merkt sich die Wahl. Heller Look nach Art von posteo.de
+  (weiße Seite, graue Bänder, Karten), Braun nur als Akzent, je Thema eine Farbe. Mobile-First,
   Hell/Dunkel nach Systemeinstellung, Touch-Ziele ≥ 44 px, sichtbarer Fokus, Sprunglink, Live-Regionen für
   Meldungen, `prefers-reduced-motion`. Texte de/en in `frontend/src/lib/i18n.svelte.ts`. Der API-Client ist aus
   `frontend/openapi.json` generiert; ein Test stellt sicher, dass diese Datei zur API passt.

@@ -2,7 +2,6 @@ import argparse
 import json
 import logging
 import warnings
-from importlib import resources
 from pathlib import Path
 
 from eilkurier.render import EditionRenderer, Theme
@@ -16,10 +15,10 @@ def _seed_demo() -> None:
     """A demo household: two readers and a few classic feeds, so the system has something to do."""
     from sqlalchemy import select
 
+    from eilkurier.catalog import load_catalog, source_fields
     from eilkurier.db import Interest, Reader, Source, session_scope
     from eilkurier.deliver import new_link_code
 
-    catalog = json.loads(resources.files("eilkurier").joinpath("catalog.json").read_text("utf-8"))
     wanted = {
         "Tagesschau",
         "heise online News",
@@ -32,7 +31,7 @@ def _seed_demo() -> None:
         if session.scalar(select(Reader.id).limit(1)):
             print("database already has readers, nothing seeded")
             return
-        sources = [Source(**entry) for entry in catalog if entry["name"] in wanted]
+        sources = [Source(**source_fields(e)) for e in load_catalog()["sources"] if e["name"] in wanted]
         session.add_all(sources)
         papa = Reader(name="Papa", telegram_link_code=new_link_code(), sources=sources)
         papa.interests = [
