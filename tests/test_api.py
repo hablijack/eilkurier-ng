@@ -169,6 +169,10 @@ def test_web_ui_client_matches_api() -> None:
     from pathlib import Path
 
     committed = json.loads((Path(__file__).parents[1] / "frontend" / "openapi.json").read_text("utf-8"))
-    assert committed == create_app().openapi(), (
+    current = create_app().openapi()
+    # The app version changes with every release and does not affect the generated client.
+    committed["info"].pop("version", None)
+    current["info"].pop("version", None)
+    assert committed == current, (
         "API changed: run `uv run eilkurier openapi > frontend/openapi.json && (cd frontend && npm run api)`"
     )

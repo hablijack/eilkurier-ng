@@ -9,6 +9,11 @@ Ein Release entsteht mit `scripts/release.py X.Y.Z` (siehe README, Abschnitt „
 
 ## [Unreleased]
 
+### Behoben
+
+- CI: Der Abgleich von `frontend/openapi.json` mit der API ignoriert die App-Version, sonst schlägt jedes
+  Release fehl. 0.2.0 wurde deshalb nie als Image gebaut; 0.2.1 enthält dieselben Funktionen.
+
 ## [0.2.0] – 2026-11-18
 
 ### Neu
