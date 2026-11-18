@@ -33,8 +33,8 @@ x-settings: &settings
   EILKURIER_SMTP_STARTTLS: "true"
 
 x-eilkurier: &eilkurier
-  # latest = neuester Stand von main; zum Festnageln ein Commit-Kürzel von Docker Hub, z. B. :cc0dc62
-  image: hablijack/eilkurier-ng:latest
+  # Genaue Version (siehe CHANGELOG.md). Update: Nummer erhöhen, dann im Plugin "Pull" und "Up".
+  image: hablijack/eilkurier-ng:0.1.0
   restart: unless-stopped
   environment: *settings
   # Zustandslos: Root-Dateisystem schreibgeschützt, keine Rechte; alles liegt in Postgres.

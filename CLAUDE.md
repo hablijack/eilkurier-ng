@@ -100,8 +100,11 @@ After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd
 ## Repo & CI
 
 GitHub `eilkurier-ng`. CircleCI runs ruff and pytest (with a pgvector service) plus `npm run check`/build on
-every branch. On `main` it builds the multi-arch image
-via buildx/QEMU and pushes `hablijack/eilkurier-ng:latest` and `:<sha7>` (needs project env vars
-`DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD`). The sibling directories `../eilkurier*` are the legacy
+every branch and tag. Only release tags `vX.Y.Z` build the multi-arch image (buildx/QEMU) and push
+`hablijack/eilkurier-ng:X.Y.Z`, `:X.Y`, `:X` and `:latest` (needs project env vars `DOCKERHUB_USERNAME` and
+`DOCKERHUB_PASSWORD`); the job fails if the tag differs from `pyproject.toml`. Semantic versioning: the version
+lives in `pyproject.toml`, `frontend/package*.json`, `uv.lock` and the image tags of `docker-compose.yml` and
+`deploy/omv/eilkurier.yml` (a test checks they agree). Note user-facing changes under "Unreleased" in
+`CHANGELOG.md` (German). Release with `scripts/release.py X.Y.Z` (commits and tags, never pushes). The sibling directories `../eilkurier*` are the legacy
 2018–2022 implementation. They are reference material only: the masthead and newspaper styles came from
 `../eilkurier-backend/src/main/resources/META-INF/resources/css/newspaper.css`.

@@ -77,23 +77,47 @@ jobs:
           name: Enable arm64 emulation for multi-arch builds
           command: docker run --privileged --rm tonistiigi/binfmt --install arm64
       - run:
-          name: Build and push multi-arch image to Docker Hub
+          name: Check that the tag matches the version in pyproject.toml
           command: |
+            code=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml | head -1)
+            if [ "v$code" != "$CIRCLE_TAG" ]; then
+              echo "Tag $CIRCLE_TAG does not match version $code in pyproject.toml" >&2
+              exit 1
+            fi
+      - run:
+          name: Build and push multi-arch image to Docker Hub (X.Y.Z, X.Y, X, latest)
+          command: |
+            version="${CIRCLE_TAG#v}"
+            minor="${version%.*}"
+            major="${version%%.*}"
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker buildx create --use --name multiarch
             docker buildx build \
               --platform linux/arm64,linux/amd64 \
+              --build-arg VERSION="$version" \
+              --build-arg REVISION="$CIRCLE_SHA1" \
+              --tag "hablijack/eilkurier-ng:$version" \
+              --tag "hablijack/eilkurier-ng:$minor" \
+              --tag "hablijack/eilkurier-ng:$major" \
               --tag hablijack/eilkurier-ng:latest \
-              --tag "hablijack/eilkurier-ng:${CIRCLE_SHA1:0:7}" \
               --push .
 
 workflows:
   build:
     jobs:
-      - test
-      - web
+      # Every branch and every tag is tested; only release tags vX.Y.Z build and push images.
+      - test:
+          filters:
+            tags:
+              only: /.*/
+      - web:
+          filters:
+            tags:
+              only: /.*/
       - image:
           requires: [test, web]
           filters:
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
             branches:
-              only: main
+              ignore: /.*/

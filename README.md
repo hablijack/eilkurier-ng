@@ -42,6 +42,23 @@ docker compose run --rm app eilkurier seed-demo
 
 Das Image `hablijack/eilkurier-ng` wird für `linux/arm64` und `linux/amd64` gebaut.
 
+### Versionen
+
+Eilkurier folgt [Semantic Versioning](https://semver.org/lang/de/). Code (`pyproject.toml`), Git-Tag (`vX.Y.Z`)
+und Docker-Image (`X.Y.Z`) tragen immer dieselbe Nummer; was sich geändert hat, steht in
+[CHANGELOG.md](CHANGELOG.md). Images gibt es nur für Releases, jeweils als `X.Y.Z`, `X.Y`, `X` und `latest`.
+Die Compose-Dateien nennen die genaue Version.
+
+**Update auf dem Pi:** in der Compose-Datei die Nummer bei `image: hablijack/eilkurier-ng:…` erhöhen, im Plugin
+„Pull“ und danach „Up“ (erst „Up“ ersetzt die laufenden Container). Migrationen laufen dabei von selbst.
+
+**Release erstellen** (auf `main`, sauberer Arbeitsstand, Änderungen unter „Unreleased“ im Changelog):
+
+```bash
+scripts/release.py 0.3.0     # Version überall setzen, Changelog datieren, Commit „Release 0.3.0“, Tag v0.3.0
+git push --follow-tags       # CircleCI testet und baut die Images 0.3.0, 0.3, 0 und latest
+```
+
 ## Entwicklung
 
 Voraussetzungen: [uv](https://docs.astral.sh/uv/), Node 22, Docker (für Postgres).

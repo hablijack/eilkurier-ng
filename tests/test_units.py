@@ -232,3 +232,20 @@ def test_on_this_day_prefers_round_anniversary() -> None:
     events = {"selected": [{"year": 2003, "text": "B"}, {"year": 1926, "text": "A"}]}
     http = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(200, json=events)))
     assert almanac.on_this_day(http, date(2026, 11, 17), "de") == (1926, "A")
+
+
+def test_version_is_the_same_everywhere() -> None:
+    """scripts/release.py writes the version into all these places; they must never drift apart."""
+    import json
+    import re
+    import tomllib
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    version = tomllib.loads((root / "pyproject.toml").read_text())["project"]["version"]
+    assert re.fullmatch(r"\d+\.\d+\.\d+", version)
+    assert json.loads((root / "frontend/package.json").read_text())["version"] == version
+    assert json.loads((root / "frontend/package-lock.json").read_text())["version"] == version
+    assert f"hablijack/eilkurier-ng:{version}\n" in (root / "deploy/omv/eilkurier.yml").read_text()
+    assert f"EILKURIER_VERSION:-{version}}}" in (root / "docker-compose.yml").read_text()
+    assert f"## [{version}] – " in (root / "CHANGELOG.md").read_text()

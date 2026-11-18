@@ -5,7 +5,7 @@
 name: eilkurier
 
 x-eilkurier: &eilkurier
-  image: hablijack/eilkurier-ng:${EILKURIER_VERSION:-latest}
+  image: hablijack/eilkurier-ng:${EILKURIER_VERSION:-0.1.0}
   restart: unless-stopped
   env_file: .env
   environment:

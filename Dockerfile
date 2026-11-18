@@ -22,6 +22,13 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-edi
 
 # ---- runtime: one image for app, worker, migrate (and the simulator) -------------------------
 FROM python:3.13-slim
+ARG VERSION=dev
+ARG REVISION=unknown
+LABEL org.opencontainers.image.title="Eilkurier" \
+      org.opencontainers.image.version=$VERSION \
+      org.opencontainers.image.revision=$REVISION \
+      org.opencontainers.image.source="https://github.com/hablijack/eilkurier-ng" \
+      org.opencontainers.image.licenses="GPL-3.0-or-later"
 ENV PATH=/app/.venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     EILKURIER_RESOURCE_ROOT=/app \
