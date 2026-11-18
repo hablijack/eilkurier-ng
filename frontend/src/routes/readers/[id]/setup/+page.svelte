@@ -184,7 +184,7 @@
 		<Stepper steps={stepKeys.map((k) => t(k))} current={step} />
 	</div>
 
-	<div class="band">
+	<div class="band paper">
 		<div class="container aside-layout">
 			<aside class="stack">
 				<h2 class="aside-title">{t(`wizard.aside.${step}` as MessageKey)}</h2>

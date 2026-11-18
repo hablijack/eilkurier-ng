@@ -167,7 +167,7 @@
 		{/if}
 	</div>
 
-	<form class="band" onsubmit={save}>
+	<form class="band paper" onsubmit={save}>
 		<div class="container settings">
 			<section class="card stack" aria-labelledby="h-sources">
 				<div class="card-head">

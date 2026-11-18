@@ -9,6 +9,13 @@ Ein Release entsteht mit `scripts/release.py X.Y.Z` (siehe README, Abschnitt „
 
 ## [Unreleased]
 
+### Geändert
+
+- Weboberfläche im Look des alten Eilkurier: brauner Kopf mit weißem Reiter in der Mitte, Leitspruch
+  „Nachrichten, wie sie sein sollten“, braune und weiße Bänder im Wechsel, Überschriften in Versalien zwischen
+  Linien, Schrift Brawler für den Schriftzug. Die Startseite übernimmt Texte und Zeichnungen (Zeitung,
+  Weltkugel) der alten Seite. Kein dunkles Design mehr, die Rubriken sind einheitlich braun statt bunt.
+
 ### Behoben
 
 - Bestehende Installationen bekommen Bilder: Quellen aus dem Katalog, die vor 0.3.0 angelegt wurden, übernehmen

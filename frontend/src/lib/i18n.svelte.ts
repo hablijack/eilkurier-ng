@@ -170,6 +170,26 @@ const de = {
 	'home.how3': 'Jeden Morgen zugestellt',
 	'home.how3Text': 'Deine Ausgabe kommt als PDF per Telegram oder E-Mail – oder du liest sie hier.',
 	'home.latest': 'Neueste Ausgaben',
+	'home.title': 'Dein persönlicher Eilkurier',
+	'home.intro1':
+		'Kennst du das? Du sitzt sonntagmorgens am Frühstückstisch, schmökerst in der Tageszeitung deiner Wahl, und es findet sich partout nichts Interessantes. Vielleicht nimmt dir auch die Qualität des Geschriebenen sofort die Lust am Weiterlesen.',
+	'home.intro2':
+		'Wäre es nicht schön, wenn ein Bote jeden Morgen genau die Nachrichten zusammentragen würde, die dich interessieren, und sie pünktlich und lesefertig bei dir abliefert?',
+	'home.intro3':
+		'Genau das macht der Eilkurier – für die ganze Familie. Jeder stellt sich seine eigene Zeitung zusammen, und der Eilkurier bringt sie zur gewünschten Uhrzeit: per Telegram, als E-Mail oder zum Lesen hier im Browser.',
+	'home.whoLabel': 'Wer liest?',
+	'home.solution': 'Wir haben die Lösung',
+	'home.solutionLead': 'Eine Zeitung, die nur das enthält, was dich wirklich interessiert.',
+	'home.b1': 'Zeit sparen',
+	'home.b1Text': 'Nur die Meldungen aus deinen Lieblingsquellen, kurz zusammengefasst.',
+	'home.b2': 'Umwelt schützen',
+	'home.b2Text': 'Kein Papierberg vor der Tür – gedruckt wird nur, was du wirklich lesen willst.',
+	'home.b3': 'Nerven schonen',
+	'home.b3Text': 'Keine Werbung, keine Klickfallen, keine Endlos-Seiten.',
+	'home.b4': 'Immer topaktuell',
+	'home.b4Text': 'Jeden Morgen frisch gesammelt, laufende Geschichten mit „Was bisher geschah“.',
+	'home.b5': 'Modernes Medium',
+	'home.b5Text': 'Eine echte Zeitung: auf dem Tablet, dem Handy oder ausgedruckt.',
 	'newReader.title': 'Neue Zeitung anlegen',
 	'newReader.lede':
 		'In vier kurzen Schritten stellst du eine Zeitung zusammen. Alles lässt sich später ändern.',
@@ -426,6 +446,26 @@ const en: Record<MessageKey, string> = {
 	'home.how3': 'Delivered every morning',
 	'home.how3Text': 'Your edition arrives as a PDF via Telegram or e-mail – or you read it here.',
 	'home.latest': 'Latest editions',
+	'home.title': 'Your personal Eilkurier',
+	'home.intro1':
+		'Sounds familiar? Sunday morning at the breakfast table, you leaf through the newspaper of your choice and there is simply nothing interesting in it. Or the quality of the writing takes away any wish to read on.',
+	'home.intro2':
+		'Wouldn’t it be nice if a courier collected exactly the news you care about every morning and delivered it to you, on time and ready to read?',
+	'home.intro3':
+		'That is what Eilkurier does – for the whole family. Everyone puts together their own newspaper, and Eilkurier brings it at the time you choose: via Telegram, by e-mail or to read here in the browser.',
+	'home.whoLabel': 'Who is reading?',
+	'home.solution': 'We have the solution',
+	'home.solutionLead': 'A newspaper that contains only what really interests you.',
+	'home.b1': 'Save time',
+	'home.b1Text': 'Only the news from your favourite sources, briefly summarised.',
+	'home.b2': 'Protect the environment',
+	'home.b2Text': 'No pile of paper at the door – only what you really want to read gets printed.',
+	'home.b3': 'Spare your nerves',
+	'home.b3Text': 'No ads, no clickbait, no endless pages.',
+	'home.b4': 'Always up to date',
+	'home.b4Text': 'Collected fresh every morning, running stories with “What happened so far”.',
+	'home.b5': 'A modern medium',
+	'home.b5Text': 'A real newspaper: on the tablet, on the phone or printed.',
 	'newReader.title': 'Create a newspaper',
 	'newReader.lede':
 		'Put together a newspaper in four short steps. You can change everything later.',

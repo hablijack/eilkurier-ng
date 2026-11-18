@@ -177,11 +177,6 @@
 		width: clamp(48px, 10vw, 80px);
 		height: auto;
 	}
-	@media (prefers-color-scheme: dark) {
-		.paper-title img {
-			filter: invert(0.9);
-		}
-	}
 	.paper-meta {
 		display: flex;
 		flex-wrap: wrap;

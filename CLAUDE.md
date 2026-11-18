@@ -103,7 +103,7 @@ After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd
   Prettier has no config file: use `--use-tabs --single-quote --trailing-comma none --print-width 100`, and never
   run it on the generated `lib/api/schema.d.ts`.
   Strings in `src/lib/i18n.svelte.ts` (de/en, keys typed). Keep it mobile-first and WCAG 2.2 AA: labels on every
-  control, ≥ 44 px targets, colour tokens in `app.css` (light + dark). `npm run check` fails on a11y warnings.
+  control, ≥ 44 px targets, colour tokens in `app.css` (light only, the classic Eilkurier look: brown header/footer, brown and white bands alternate; `.band.paper` is the quiet variant for forms). `npm run check` fails on a11y warnings.
   Brand assets are copied from `assets/` by `scripts/sync-assets.mjs`; don't commit copies.
 
 ## Repo & CI

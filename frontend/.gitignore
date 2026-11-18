@@ -3,3 +3,5 @@ node_modules/
 build/
 static/fonts/
 static/rider.svg
+static/logo-*.svg
+static/img/

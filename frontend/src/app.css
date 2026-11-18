@@ -1,11 +1,24 @@
-/* Eilkurier web UI. Mobile-first, light and airy: white page, grey bands, cards, one brand colour
-   (the rider's brown) for accents, a colour per topic. All text colours meet WCAG 2.2 AA (>= 4.5:1)
-   on the backgrounds they are used on, in both themes. */
+/* Eilkurier web UI, in the look of the classic Eilkurier (2018–2022): white pages, the rider's brown for
+   the header, footer and banners (brown and white sections alternate), Playfair Display headings in
+   capitals between rules, Brawler for the wordmark. Light only. All text colours meet WCAG 2.2 AA
+   (>= 4.5:1) on the backgrounds they are used on. */
 
 @font-face {
 	font-family: 'Playfair Display';
 	src: url('/fonts/PlayfairDisplay.ttf') format('truetype');
 	font-weight: 400 900;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Brawler';
+	src: url('/fonts/Brawler-Regular.ttf') format('truetype');
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Brawler';
+	src: url('/fonts/Brawler-Bold.ttf') format('truetype');
+	font-weight: 700;
 	font-display: swap;
 }
 @font-face {
@@ -21,49 +34,41 @@
 
 :root {
 	--bg: #ffffff;
-	--band: #f3f4f6;
+	--band: #f9f7f1; /* the classic Eilkurier paper tone, for quiet areas */
 	--surface: #ffffff;
-	--surface-2: #f8f9fa;
-	--ink: #1d1f23;
-	--muted: #565c66; /* 6.6:1 on white, 6.0:1 on band */
-	--line: #dfe2e6;
-	--line-strong: #b9bec6;
-	--brand: #6b2f1b; /* 10.4:1 on white */
+	--surface-2: #f9f7f1;
+	--ink: #1a1a1a;
+	--muted: #5b5148; /* 7.4:1 on white */
+	--line: #e3dbd3;
+	--line-strong: #b9a99b;
+	--brand: #6b2f1b; /* 10.4:1 on white; white on brand 10.4:1 */
 	--brand-hover: #55240f;
 	--brand-ink: #ffffff;
 	--brand-tint: #f6eeea;
-	--info: #155e8f;
-	--info-tint: #e7f1f8;
+	--brand-soft: #e9d6cc; /* light text on brown bands: 7.3:1 */
+	--info: var(--brand);
+	--info-tint: var(--brand-tint);
 	--ok: #1b6e35;
 	--ok-tint: #e7f4ea;
 	--warn: #8a4b00;
 	--warn-tint: #fcf1e3;
 	--danger: #a1251b;
 	--danger-tint: #fbeceb;
-	--focus: #155e8f;
+	--focus: #6b2f1b;
 
-	/* topics: text colour (>= 4.5:1 on its tint and on white) and tint */
-	--topic-red: #b42318;
-	--topic-red-tint: #fdecea;
-	--topic-green: #1d6f38;
-	--topic-green-tint: #e6f4ea;
-	--topic-blue: #1d5aa0;
-	--topic-blue-tint: #e7effa;
-	--topic-orange: #a6460a;
-	--topic-orange-tint: #fdf0e4;
-	--topic-violet: #6a3cb8;
-	--topic-violet-tint: #f1ebfb;
-	--topic-grey: #4f5661;
-	--topic-grey-tint: #eef0f2;
+	/* Topics share the brand colour (the classic look is brown and white); icons tell them apart. */
+	--topic: var(--brand);
+	--topic-tint: var(--brand-tint);
 
-	--radius: 12px;
-	--radius-sm: 8px;
+	--radius: 4px;
+	--radius-sm: 4px;
 	--gap: 1rem;
-	--shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 8%);
-	--shadow-lg: 0 8px 24px rgb(16 24 40 / 10%);
-	--font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	--shadow: none;
+	--shadow-lg: 0 6px 18px rgb(107 47 27 / 14%);
+	--font-ui: Roboto, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 	--font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
-	--font-body: Georgia, 'Libertinus Serif', 'Times New Roman', serif;
+	--font-body: 'Playfair Display', Georgia, 'Times New Roman', serif;
+	--font-brand: 'Brawler', Georgia, serif;
 	--font-label: 'Bebas Neue', 'Arial Narrow', sans-serif;
 
 	/* kept for the edition view (newspaper look) */
@@ -71,48 +76,6 @@
 	--accent: var(--brand);
 	--accent-ink: var(--brand-ink);
 	color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-	:root {
-		--bg: #15171a;
-		--band: #1c1f23;
-		--surface: #22262b;
-		--surface-2: #1e2125;
-		--ink: #eceef1;
-		--muted: #aab1bb; /* 7.6:1 on surface */
-		--line: #343a41;
-		--line-strong: #4a515a;
-		--brand: #e3a585; /* 7.9:1 on surface */
-		--brand-hover: #efbfa6;
-		--brand-ink: #1c1a17;
-		--brand-tint: #3a2a22;
-		--info: #8cc4ec;
-		--info-tint: #1d2c38;
-		--ok: #86d39a;
-		--ok-tint: #1c3123;
-		--warn: #f0b46c;
-		--warn-tint: #3a2d1b;
-		--danger: #ff9f94;
-		--danger-tint: #3b2221;
-		--focus: #8cc4ec;
-		--topic-red: #ff9b90;
-		--topic-red-tint: #3b2321;
-		--topic-green: #8fd6a2;
-		--topic-green-tint: #1c3224;
-		--topic-blue: #9cc2f3;
-		--topic-blue-tint: #1e2c3f;
-		--topic-orange: #f6b27a;
-		--topic-orange-tint: #3a2a1c;
-		--topic-violet: #c6abf5;
-		--topic-violet-tint: #2d2440;
-		--topic-grey: #c2c8d0;
-		--topic-grey-tint: #2b3036;
-		--shadow: 0 1px 2px rgb(0 0 0 / 40%);
-		--shadow-lg: 0 8px 24px rgb(0 0 0 / 45%);
-		--paper: #1c1a17;
-		color-scheme: dark;
-	}
 }
 
 *,
@@ -145,11 +108,12 @@ h3 {
 h1 {
 	font-family: var(--font-display);
 	font-weight: 700;
-	font-size: clamp(1.75rem, 5vw, 2.4rem);
-	letter-spacing: -0.01em;
+	font-size: clamp(1.6rem, 4.5vw, 2.2rem);
+	text-transform: uppercase;
 }
 h2 {
-	font-size: 1.3rem;
+	font-family: var(--font-display);
+	font-size: 1.35rem;
 	font-weight: 700;
 }
 h3 {
@@ -221,22 +185,102 @@ a:hover {
 	max-width: 48rem;
 }
 
-/* full-width grey band, like the sections on posteo.de */
+/* Full-width brown banner with white text; brown and white sections alternate down the page. */
 .band {
+	background: var(--brand);
+	color: var(--brand-ink);
+	padding: 2.25rem 0;
+}
+.band:not(.paper) a:not(.btn) {
+	color: var(--brand-ink);
+}
+.band:not(.paper) .muted,
+.band:not(.paper) .hint {
+	color: var(--brand-soft);
+}
+.band:not(.paper) :focus-visible {
+	outline-color: var(--brand-ink);
+}
+.band:not(.paper) .card,
+.band:not(.paper) .card a:not(.btn) {
+	color: var(--ink);
+}
+.band:not(.paper) .card .muted,
+.band:not(.paper) .card .hint {
+	color: var(--muted);
+}
+.band:not(.paper) .card :focus-visible {
+	outline-color: var(--focus);
+}
+.band.paper {
 	background: var(--band);
-	border-top: 1px solid var(--line);
-	border-bottom: 1px solid var(--line);
-	padding: 2rem 0;
+	color: var(--ink);
+	border-top: 2px solid var(--brand);
+	border-bottom: 2px solid var(--brand);
+}
+
+/* The classic title: capitals between a full rule above and a shorter one below. */
+.rule-title {
+	text-align: center;
+	text-transform: uppercase;
+	margin: 0 auto 1.25rem;
+	width: fit-content;
+	max-width: 100%;
+}
+.rule-title::before,
+.rule-title::after {
+	content: '';
+	display: block;
+	margin: 0 auto;
+	border-color: currentColor;
+	border-style: solid;
+	border-width: 0;
+}
+.rule-title::before {
+	width: 100%;
+	height: 0.4rem;
+	border-top-width: 2px;
+}
+.rule-title::after {
+	width: 70%;
+	height: 0.55rem;
+	border-bottom-width: 2px;
 }
 
 .page-head {
-	padding-top: 1.75rem;
+	padding-top: 2rem;
 	padding-bottom: 1.25rem;
+}
+.page-head > h1 {
+	text-align: center;
+	margin: 0 auto 1rem;
+	width: fit-content;
+	max-width: 100%;
+}
+.page-head > h1::before,
+.page-head > h1::after {
+	content: '';
+	display: block;
+	margin: 0 auto;
+}
+.page-head > h1::before {
+	width: 100%;
+	height: 0.4rem;
+	border-top: 2px solid currentColor;
+}
+.page-head > h1::after {
+	width: 70%;
+	height: 0.55rem;
+	border-bottom: 2px solid currentColor;
 }
 .page-head .lede {
 	color: var(--muted);
+	font-family: var(--font-body);
 	font-size: 1.1rem;
 	max-width: 42rem;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
 }
 
 .stack > * + * {
@@ -289,14 +333,23 @@ a:hover {
 
 .card {
 	background: var(--surface);
-	border: 1px solid var(--line);
+	border: 2px solid var(--brand);
 	border-radius: var(--radius);
 	padding: 1.25rem;
-	box-shadow: var(--shadow);
 }
 .card > h2:first-child,
 .card > header:first-child h2 {
 	margin-top: 0;
+}
+/* Card title as a brown label strip, like the old "Login" box. */
+.card > h2:first-child {
+	margin: -1.25rem -1.25rem 1rem;
+	padding: 0.55rem 1.25rem;
+	background: var(--brand);
+	color: var(--brand-ink);
+	font-family: var(--font-brand);
+	font-weight: 700;
+	font-size: 1.3rem;
 }
 .card-head {
 	display: flex;
@@ -308,6 +361,28 @@ a:hover {
 }
 .card-head h2 {
 	margin: 0;
+}
+.card > .card-head:first-child {
+	margin: -1.25rem -1.25rem 1rem;
+	padding: 0.35rem 0.75rem 0.35rem 1.25rem;
+	background: var(--brand);
+	color: var(--brand-ink);
+	align-items: center;
+}
+.card > .card-head:first-child h2 {
+	font-family: var(--font-brand);
+	font-weight: 700;
+	font-size: 1.3rem;
+}
+.card > .card-head:first-child .btn.ghost,
+.card > .card-head:first-child a:not(.btn) {
+	color: var(--brand-ink);
+}
+.card > .card-head:first-child .btn.ghost:hover {
+	background: rgb(255 255 255 / 12%);
+}
+.card > .card-head:first-child :focus-visible {
+	outline-color: var(--brand-ink);
 }
 
 .muted {
@@ -347,30 +422,10 @@ a:hover {
 	color: var(--info);
 }
 
-/* a topic's colour pair, set via class `topic-<color>` */
-.topic-red {
-	--t: var(--topic-red);
-	--t-tint: var(--topic-red-tint);
-}
-.topic-green {
-	--t: var(--topic-green);
-	--t-tint: var(--topic-green-tint);
-}
-.topic-blue {
-	--t: var(--topic-blue);
-	--t-tint: var(--topic-blue-tint);
-}
-.topic-orange {
-	--t: var(--topic-orange);
-	--t-tint: var(--topic-orange-tint);
-}
-.topic-violet {
-	--t: var(--topic-violet);
-	--t-tint: var(--topic-violet-tint);
-}
-.topic-grey {
-	--t: var(--topic-grey);
-	--t-tint: var(--topic-grey-tint);
+/* topic colour pair (`topic-<color>` from the catalog): all brown in the classic look */
+[class*='topic-'] {
+	--t: var(--topic);
+	--t-tint: var(--topic-tint);
 }
 
 /* --- forms ------------------------------------------------------------------------------------ */
@@ -461,7 +516,7 @@ fieldset > legend {
 	min-height: 44px;
 	padding: 0.4rem 0.9rem;
 	border: 1px solid var(--line-strong);
-	border-radius: 999px;
+	border-radius: var(--radius);
 	cursor: pointer;
 	background: var(--surface);
 }
@@ -498,9 +553,11 @@ fieldset > legend {
 	gap: 0.45rem;
 	min-height: 44px;
 	padding: 0.5rem 1.1rem;
-	font: 600 1rem/1.2 var(--font-ui);
-	border-radius: 999px;
-	border: 1px solid var(--brand);
+	font: 700 0.95rem/1.2 var(--font-ui);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	border-radius: var(--radius);
+	border: 2px solid var(--brand);
 	background: var(--brand);
 	color: var(--brand-ink);
 	cursor: pointer;
@@ -521,12 +578,21 @@ fieldset > legend {
 }
 .btn.secondary {
 	background: var(--surface);
-	color: var(--ink);
-	border-color: var(--line-strong);
+	color: var(--brand);
+	border-color: var(--brand);
 }
 .btn.secondary:hover {
-	background: var(--band);
-	color: var(--ink);
+	background: var(--brand-tint);
+	color: var(--brand);
+}
+.band:not(.paper) .btn {
+	background: var(--brand-ink);
+	color: var(--brand);
+	border-color: var(--brand-ink);
+}
+.band:not(.paper) .btn:hover {
+	background: var(--brand-tint);
+	color: var(--brand);
 }
 .btn.ghost {
 	background: transparent;

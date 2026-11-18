@@ -61,8 +61,8 @@
 	const links = $derived([
 		...(reader ? [{ href: `/readers/${reader.id}`, key: 'nav.mine' as const, icon: 'newspaper' as const }] : []),
 		{ href: '/letters', key: 'nav.letters' as const, icon: 'message' as const },
-		{ href: '/sources', key: 'nav.sources' as const, icon: 'rss' as const },
-		{ href: '/system', key: 'nav.system' as const, icon: 'activity' as const }
+		{ href: '/sources', key: 'nav.sources' as const, icon: 'rss' as const }
+		// "System" is in the footer: the header keeps room for the centred logo.
 	]);
 
 	function current(href: string): boolean {
@@ -73,37 +73,43 @@
 <a class="skip-link" href="#main">{t('app.skip')}</a>
 
 <header class="site-header">
-	<div class="container header-inner">
-		<a class="brand" href="/">
-			<img src="/rider.svg" alt="" width="64" height="38" />
-			<span class="brand-text">
+	<div class="bar">
+		<div class="container header-inner">
+			{#if session?.authenticated}
+				<nav aria-label={t('nav.main')}>
+					<ul>
+						{#each links as link (link.href)}
+							<li>
+								<a href={link.href} aria-current={current(link.href) ? 'page' : undefined}>
+									<Icon name={link.icon} size={16} />{t(link.key)}
+								</a>
+							</li>
+						{/each}
+					</ul>
+				</nav>
+			{/if}
+			<a class="brand" href="/">
+				<img src="/logo-white.svg" alt="" width="64" height="37" />
 				<span class="wordmark">Eilkurier</span>
-				<span class="slogan">{t('app.slogan')}</span>
-			</span>
-		</a>
-		{#if session?.authenticated}
-			<nav aria-label={t('nav.main')}>
-				<ul>
-					{#each links as link (link.href)}
-						<li>
-							<a href={link.href} aria-current={current(link.href) ? 'page' : undefined}>
-								<Icon name={link.icon} size={18} />{t(link.key)}
-							</a>
-						</li>
-					{/each}
-				</ul>
-				<a class="who" href="/" aria-label={reader ? t('nav.switchReader', { name: reader.name }) : t('nav.chooseReader')}>
+			</a>
+			{#if session?.authenticated}
+				<a
+					class="who"
+					href="/"
+					aria-label={reader ? t('nav.switchReader', { name: reader.name }) : t('nav.chooseReader')}
+				>
 					{#if reader}
-						<Avatar id={reader.id} name={reader.name} size={36} />
+						<Avatar id={reader.id} name={reader.name} size={34} />
 						<span class="who-name">{reader.name}</span>
 					{:else}
 						<Icon name="users" />
 						<span class="who-name">{t('nav.chooseReader')}</span>
 					{/if}
 				</a>
-			</nav>
-		{/if}
+			{/if}
+		</div>
 	</div>
+	<p class="slogan">{t('app.slogan')}</p>
 </header>
 
 <main id="main" tabindex="-1">
@@ -137,153 +143,177 @@
 
 <footer class="site-footer">
 	<div class="container footer-inner">
-		<div>
-			<p class="footer-brand">Eilkurier</p>
-			<p class="small muted">{t('footer.about')}</p>
+		<div class="footer-brand">
+			<p class="footer-title">Eilkurier</p>
+			<p class="small">{t('footer.about')}</p>
+			<p class="small">&copy; 2018–{new Date().getFullYear()}</p>
 		</div>
-		<ul class="footer-links" aria-label={t('footer.links')}>
-			<li><a href="/letters">{t('nav.letters')}</a></li>
-			<li><a href="/sources">{t('nav.sources')}</a></li>
-			<li><a href="/system">{t('nav.system')}</a></li>
-			<li><a href="/api/v1/docs">{t('footer.api')}</a></li>
-		</ul>
-		<div class="footer-tools">
-			<label for="lang">{t('nav.language')}</label>
-			<select id="lang" value={i18n.lang} onchange={(e) => setLang(e.currentTarget.value as Lang)}>
-				{#each languages as lang (lang)}
-					<option value={lang}>{lang === 'de' ? 'Deutsch' : 'English'}</option>
-				{/each}
-			</select>
-			{#if session?.pin_required && session.authenticated}
-				<button class="btn secondary small" type="button" onclick={logout}>{t('nav.logout')}</button>
-			{/if}
+		<div class="footer-rider">
+			<img src="/logo-white.svg" alt="" width="110" height="63" />
+			<p class="footer-slogan">{t('app.slogan')}</p>
+		</div>
+		<div class="footer-side">
+			<ul class="footer-links" aria-label={t('footer.links')}>
+				<li><a href="/letters">{t('nav.letters')}</a></li>
+				<li><a href="/sources">{t('nav.sources')}</a></li>
+				<li><a href="/system">{t('nav.system')}</a></li>
+				<li><a href="/api/v1/docs">{t('footer.api')}</a></li>
+			</ul>
+			<div class="footer-tools">
+				<label for="lang">{t('nav.language')}</label>
+				<select id="lang" value={i18n.lang} onchange={(e) => setLang(e.currentTarget.value as Lang)}>
+					{#each languages as lang (lang)}
+						<option value={lang}>{lang === 'de' ? 'Deutsch' : 'English'}</option>
+					{/each}
+				</select>
+				{#if session?.pin_required && session.authenticated}
+					<button class="btn secondary small" type="button" onclick={logout}>{t('nav.logout')}</button>
+				{/if}
+			</div>
 		</div>
 	</div>
 </footer>
 
 <style>
+	/* The classic Eilkurier header: brown bar (navigation left, white rider in the middle), then a white
+	   banner with the slogan in brown, closed by a brown rule. */
 	.site-header {
-		background: var(--bg);
-		border-bottom: 1px solid var(--line);
 		position: sticky;
 		top: 0;
 		z-index: 10;
 	}
+	.bar {
+		background: var(--brand);
+		color: var(--brand-ink);
+	}
 	.header-inner {
-		display: flex;
-		flex-wrap: wrap;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 		align-items: center;
-		justify-content: space-between;
-		gap: 0.25rem 1.5rem;
-		padding-top: 0.6rem;
-		padding-bottom: 0.6rem;
+		gap: 0.5rem 1rem;
+		min-height: 4.5rem;
 	}
 	.brand {
+		grid-column: 2;
+		grid-row: 1;
 		display: inline-flex;
 		align-items: center;
-		gap: 0.75rem;
-		color: var(--brand);
+		gap: 0.6rem;
+		color: var(--brand-ink);
 		text-decoration: none;
 		min-height: 44px;
 	}
+	.brand:hover {
+		color: var(--brand-ink);
+	}
 	.brand img {
-		width: 56px;
+		width: 62px;
 		height: auto;
 	}
-	@media (prefers-color-scheme: dark) {
-		.brand img {
-			filter: invert(0.8) sepia(0.6) saturate(2) hue-rotate(-20deg);
-		}
-	}
-	.brand-text {
-		display: flex;
-		flex-direction: column;
-		line-height: 1.05;
-	}
 	.wordmark {
-		font-family: var(--font-display);
-		font-weight: 800;
-		font-size: 1.7rem;
-		letter-spacing: -0.01em;
-		color: var(--ink);
-	}
-	.slogan {
-		font-size: 0.72rem;
-		font-weight: 600;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: var(--brand);
+		font-family: var(--font-brand);
+		font-weight: 700;
+		font-size: 1.9rem;
+		line-height: 1;
 	}
 	nav {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex-wrap: wrap;
+		grid-column: 1;
+		grid-row: 1;
+		min-width: 0;
 	}
 	nav ul {
 		display: flex;
-		gap: 0.15rem;
+		gap: 0.25rem;
 		list-style: none;
 		margin: 0;
 		padding: 0;
 		overflow-x: auto;
+		scrollbar-width: none;
 	}
-	nav ul a {
+	nav a {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.4rem;
 		min-height: 44px;
-		padding: 0 0.75rem;
-		border-radius: 999px;
-		color: var(--ink);
-		font-weight: 600;
+		padding: 0 0.7rem;
+		color: var(--brand-ink);
+		font-size: 0.85rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 		text-decoration: none;
 		white-space: nowrap;
+		border-bottom: 2px solid transparent;
 	}
-	nav ul a:hover {
-		background: var(--band);
+	nav a:hover {
+		color: var(--brand-ink);
+		border-bottom-color: var(--brand-soft);
 	}
-	nav ul a[aria-current='page'] {
-		background: var(--brand-tint);
-		color: var(--brand);
+	nav a[aria-current='page'] {
+		border-bottom-color: var(--brand-ink);
+	}
+	.bar :focus-visible {
+		outline-color: var(--brand-ink);
 	}
 	.who {
+		grid-column: 3;
+		grid-row: 1;
+		justify-self: end;
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
 		min-height: 44px;
-		padding: 0.2rem 0.8rem 0.2rem 0.25rem;
-		border: 1px solid var(--line);
+		padding: 0.2rem 0.85rem 0.2rem 0.25rem;
+		border: 2px solid var(--brand-soft);
 		border-radius: 999px;
-		color: var(--ink);
+		color: var(--brand-ink);
 		text-decoration: none;
-		font-weight: 600;
+		font-weight: 700;
 	}
 	.who:hover {
-		background: var(--band);
-		color: var(--ink);
+		color: var(--brand-ink);
+		border-color: var(--brand-ink);
 	}
-	@media (max-width: 40rem) {
+	.who :global(.avatar) {
+		background: var(--brand-ink);
+		color: var(--brand);
+	}
+	.slogan {
+		margin: 0;
+		background: var(--bg);
+		border-bottom: 2px solid var(--brand);
+		color: var(--brand);
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: 0.9rem;
+		letter-spacing: 0.04em;
+		line-height: 2;
+		text-align: center;
+		text-transform: uppercase;
+	}
+	@media (max-width: 48rem) {
+		.header-inner {
+			grid-template-columns: minmax(0, 1fr) auto;
+			min-height: 0;
+			padding-top: 0.4rem;
+		}
+		.brand {
+			grid-column: 1;
+		}
+		.who {
+			grid-column: 2;
+		}
 		nav {
-			width: 100%;
-			flex-wrap: nowrap;
-			justify-content: space-between;
-		}
-		nav ul {
-			flex: 1;
-			min-width: 0;
-		}
-		nav ul a {
-			padding: 0 0.6rem;
+			grid-column: 1 / -1;
+			grid-row: 2;
+			margin: 0 -1rem;
+			padding: 0 0.5rem;
 		}
 		.who-name {
 			display: none;
 		}
 		.who {
 			padding: 0.2rem;
-		}
-		.slogan {
-			display: none;
 		}
 	}
 	main {
@@ -297,26 +327,78 @@
 		max-width: 24rem;
 		margin: 2rem auto;
 	}
+
+	/* Footer: brown, the wordmark between rules, the white rider and the slogan. */
 	.site-footer {
-		background: var(--band);
-		border-top: 1px solid var(--line);
-		padding: 2rem 0;
+		background: var(--brand);
+		color: var(--brand-ink);
+		padding: 2rem 0 1.5rem;
+	}
+	.site-footer a {
+		color: var(--brand-ink);
+	}
+	.site-footer :focus-visible {
+		outline-color: var(--brand-ink);
 	}
 	.footer-inner {
 		display: grid;
-		gap: 1.5rem;
+		gap: 1.75rem;
 		grid-template-columns: minmax(0, 1fr);
+		align-items: start;
 	}
 	@media (min-width: 48rem) {
 		.footer-inner {
-			grid-template-columns: 2fr 1fr 1fr;
+			grid-template-columns: 1fr auto 1fr;
+		}
+		.footer-side {
+			justify-self: end;
 		}
 	}
-	.footer-brand {
+	.footer-title {
+		font-family: var(--font-brand);
+		font-weight: 700;
+		font-size: 1.6rem;
+		text-transform: uppercase;
+		width: fit-content;
+		margin: 0 0 0.5rem;
+	}
+	.footer-title::before,
+	.footer-title::after {
+		content: '';
+		display: block;
+	}
+	.footer-title::before {
+		width: 100%;
+		height: 0.4rem;
+		border-top: 2px solid currentColor;
+	}
+	.footer-title::after {
+		width: 55%;
+		height: 0.5rem;
+		border-bottom: 2px solid currentColor;
+	}
+	.footer-brand .small {
+		color: var(--brand-soft);
+		max-width: 22rem;
+	}
+	.footer-rider {
+		text-align: center;
+	}
+	.footer-rider img {
+		width: 110px;
+		height: auto;
+	}
+	.footer-slogan {
 		font-family: var(--font-display);
-		font-weight: 800;
-		font-size: 1.25rem;
-		margin: 0 0 0.25rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		margin: 0.5rem 0 0;
+	}
+	.footer-side {
+		display: flex;
+		gap: 2rem;
+		flex-wrap: wrap;
 	}
 	.footer-links {
 		list-style: none;
@@ -327,7 +409,6 @@
 		display: inline-flex;
 		min-height: 36px;
 		align-items: center;
-		color: var(--ink);
 	}
 	.footer-tools {
 		display: flex;
@@ -336,7 +417,7 @@
 		align-items: flex-start;
 	}
 	.footer-tools label {
-		font-weight: 600;
+		font-weight: 700;
 		font-size: 0.9rem;
 	}
 	.footer-tools select {
