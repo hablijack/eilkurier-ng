@@ -9,6 +9,11 @@ Ein Release entsteht mit `scripts/release.py X.Y.Z` (siehe README, Abschnitt „
 
 ## [Unreleased]
 
+### Neu
+
+- Golem.de liefert wieder Volltexte: Die Zustimmungsseite (Cookies/Werbung) wird so akzeptiert, wie es ein Klick
+  auf „Zustimmen“ tun würde. Übersicht über Sperren und offene Fragen: `docs/sperren.md`.
+
 ### Geändert
 
 - Weboberfläche im Look des alten Eilkurier: brauner Kopf mit weißem Reiter in der Mitte, Leitspruch
@@ -18,6 +23,9 @@ Ein Release entsteht mit `scripts/release.py X.Y.Z` (siehe README, Abschnitt „
 
 ### Behoben
 
+- Bezahlte Artikel (schema.org `isAccessibleForFree: false`, z. B. Frankenpost Plus, Golem Plus) gelten als
+  Anreißer, auch wenn der freie Teil länger als 500 Zeichen ist. Vorher wurden solche Anrisse als Volltext
+  zusammengefasst.
 - Bestehende Installationen bekommen Bilder: Quellen aus dem Katalog, die vor 0.3.0 angelegt wurden, übernehmen
   die gemessene Bild-Einstellung, und Artikel der letzten 36 Stunden suchen nachträglich ihr Seitenbild
   (Migration `0005`).

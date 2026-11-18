@@ -10,6 +10,7 @@ The schema is dropped and rebuilt through the real migrations at the start of th
 import os
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from typing import Any
 
 import httpx
 import pytest
@@ -98,12 +99,17 @@ class Web:
     """A fake internet for httpx: register URL -> (status, body, headers); everything else is 404."""
 
     def __init__(self) -> None:
-        self.routes: dict[str, tuple[int, bytes | str, dict[str, str]]] = {}
+        self.routes: dict[str, tuple[int, Any, dict[str, str]]] = {}
         self.requests: list[httpx.Request] = []
 
     def add(
-        self, url: str, body: bytes | str, status: int = 200, headers: dict[str, str] | None = None
+        self,
+        url: str,
+        body: bytes | str | Callable[[httpx.Request], httpx.Response],
+        status: int = 200,
+        headers: dict[str, str] | None = None,
     ) -> None:
+        """`body` may be a function of the request, for pages that answer depending on cookies."""
         self.routes[url] = (status, body, headers or {})
 
     def handler(self, request: httpx.Request) -> httpx.Response:
@@ -111,6 +117,8 @@ class Web:
         key = str(request.url).split("?")[0]
         for url, (status, body, headers) in self.routes.items():
             if key == url or str(request.url) == url or (url.endswith("*") and key.startswith(url[:-1])):
+                if callable(body):
+                    return body(request)
                 content = body.encode() if isinstance(body, str) else body
                 return httpx.Response(status, content=content, headers=headers)
         return httpx.Response(404)

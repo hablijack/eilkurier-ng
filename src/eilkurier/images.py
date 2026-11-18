@@ -24,6 +24,7 @@ from PIL import ImageOps
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
+from eilkurier import consent
 from eilkurier.db import Article, Image, ImageMode, Reader, Source, Status
 from eilkurier.http import HostThrottle
 from eilkurier.settings import Settings
@@ -252,8 +253,7 @@ def fetch(
             # Source without full text: the page has not been loaded yet, so look for its preview picture now.
             throttle.wait(article.url)
             try:
-                response = http.get(article.url)
-                response.raise_for_status()
+                response = consent.get_page(http, article.url)
                 apply(article, from_page(response.content, str(response.url)))
             except httpx.HTTPError as exc:
                 log.info("page for picture failed for %s: %s", article.url, exc)

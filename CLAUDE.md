@@ -35,7 +35,9 @@ After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd
   Telegram poll, collect, fulltext, pictures, reporter with a time budget, housekeeping), `migrate` (Alembic,
   one-shot).
   Compose: `docker-compose.yml`; profile `demo` adds the LLM simulator.
-- **Pipeline modules:** `collect.py` (RSS/ICS, trafilatura full text, consent/paywall/scrambled-text rejection)
+- **Pipeline modules:** `collect.py` (RSS/ICS, trafilatura full text, consent/paywall/scrambled-text rejection;
+  article pages are loaded via `consent.get_page`, which accepts known consent walls like a click would. Never
+  add code that gets around bot blocks or pay walls: `docs/sperren.md`)
   → `images.py` (picture found per `Source.image_mode` in the feed or the page's og:image; downloaded and
   downscaled only for articles a reader would likely get, stored in Postgres `images`)
   → `reporter.py` (enrich once per article, most-likely-printed first via `work_order`, one attempt per pass;

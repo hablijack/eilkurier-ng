@@ -2,6 +2,7 @@
 
 import calendar
 import logging
+import re
 from datetime import UTC, date, datetime, timedelta
 
 import feedparser
@@ -13,7 +14,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from eilkurier import images
+from eilkurier import consent, images
 from eilkurier.db import Article, CalendarEvent, Source, SourceKind, Status
 from eilkurier.http import HostThrottle
 from eilkurier.settings import Settings
@@ -48,6 +49,10 @@ BLOCK_MARKERS = (
     "you have been blocked",
     "are you a robot",
 )
+# schema.org marks paid articles so search engines know (Golem Plus, many regional papers). Short text on such
+# a page is the teaser in front of the pay wall, not the article.
+NOT_FREE = re.compile(r'"isAccessibleForFree"\s*:\s*"?false"?', re.I)
+PAID_TEASER_CHARS = 2500
 
 
 def _entry_time(entry: feedparser.FeedParserDict) -> datetime | None:
@@ -194,6 +199,8 @@ def extract_fulltext(html: str, url: str | None = None) -> str | None:
         return None  # consent or pay wall, not the article
     if looks_scrambled(text):
         return None  # pay wall that ships the article with shuffled letters
+    if len(text) < PAID_TEASER_CHARS and NOT_FREE.search(html):
+        return None  # paid article: only the teaser is free
     return text
 
 
@@ -213,8 +220,7 @@ def fetch_fulltexts(session: Session, http: httpx.Client, settings: Settings, th
             continue
         throttle.wait(article.url)
         try:
-            response = http.get(article.url)
-            response.raise_for_status()
+            response = consent.get_page(http, article.url)
             text = extract_fulltext(response.text, article.url)
         except httpx.HTTPError as exc:
             log.info("fulltext failed for %s: %s", article.url, exc)
