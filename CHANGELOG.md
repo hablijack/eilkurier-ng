@@ -9,6 +9,8 @@ Ein Release entsteht mit `scripts/release.py X.Y.Z` (siehe README, Abschnitt „
 
 ## [Unreleased]
 
+## [0.2.0] – 2026-11-18
+
 ### Neu
 
 - Weboberfläche ohne Login: Die Startseite fragt „Wer liest?“, das Gerät merkt sich die Wahl.
@@ -35,5 +37,6 @@ Erster lauffähiger Stand (ohne Release-Tag-Image; auf Docker Hub als `:cc0dc62`
 Sammeln, Volltext, Reporter mit Qwen3.5-9B auf dem Jetson, Ausgaben als PDF/UA-1, Zustellung per Telegram und
 E-Mail, Weboberfläche, Compose-Datei für openmediavault.
 
-[Unreleased]: https://github.com/hablijack/eilkurier-ng/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/hablijack/eilkurier-ng/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/hablijack/eilkurier-ng/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/hablijack/eilkurier-ng/releases/tag/v0.1.0
