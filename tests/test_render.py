@@ -15,9 +15,11 @@ def test_english_edition_renders() -> None:
     assert r.render_pdf(edition).startswith(b"%PDF")
 
 
-def test_edition_without_optional_sections_renders() -> None:
+@pytest.mark.parametrize("theme", ["klassisch", "epaper"])
+def test_edition_without_optional_sections_renders(theme) -> None:
     r = renderer()
     edition = r.sample_edition()
+    edition["style"]["theme"] = theme
     for optional in ("lead", "weather", "briefs", "family", "almanac"):
         edition.pop(optional)
     assert r.render_pdf(edition).startswith(b"%PDF")
@@ -29,7 +31,7 @@ def test_pdf_metadata_names_reader() -> None:
     assert b"Christoph" in pdf
 
 
-@pytest.mark.parametrize("theme", ["klassisch", "feuilleton", "grossdruck"])
+@pytest.mark.parametrize("theme", ["klassisch", "feuilleton", "grossdruck", "epaper"])
 def test_long_edition_converges(theme) -> None:
     """Many stories over several pages: the balanced column flow must settle without Typst warnings."""
     r = renderer()

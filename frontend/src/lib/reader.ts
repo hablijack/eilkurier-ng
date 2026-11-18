@@ -17,7 +17,7 @@ export function deliveryText(reader: Reader): string {
 	});
 }
 
-export const themes = ['klassisch', 'feuilleton', 'grossdruck'] as const;
+export const themes = ['epaper', 'klassisch', 'feuilleton', 'grossdruck'] as const;
 
 /** Display data for a section: its catalog topic, or a neutral fallback for own sources. */
 export function topicLook(

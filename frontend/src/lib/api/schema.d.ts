@@ -559,7 +559,7 @@ export interface components {
              * @enum {string}
              */
             language?: "de" | "en";
-            /** @default klassisch */
+            /** @default epaper */
             theme?: components["schemas"]["Theme"];
             /**
              * Paper
@@ -614,7 +614,7 @@ export interface components {
              * @enum {string}
              */
             language?: "de" | "en";
-            /** @default klassisch */
+            /** @default epaper */
             theme?: components["schemas"]["Theme"];
             /**
              * Paper
@@ -758,7 +758,7 @@ export interface components {
          * Theme
          * @enum {string}
          */
-        Theme: "klassisch" | "feuilleton" | "grossdruck";
+        Theme: "klassisch" | "feuilleton" | "grossdruck" | "epaper";
         /** ValidationError */
         ValidationError: {
             /** Location */

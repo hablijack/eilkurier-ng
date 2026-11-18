@@ -1,28 +1,33 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { api, unwrap, type Edition } from '$lib/api/client';
+	import { api, unwrap, type CatalogTopic, type Edition } from '$lib/api/client';
 	import type { EditionPayload, StoryItem } from '$lib/edition';
 	import { t } from '$lib/i18n.svelte';
+	import { topicLook } from '$lib/reader';
 
 	const id = $derived(Number(page.params.id));
 	let edition = $state<Edition | null>(null);
 	let error = $state('');
+	let topics = $state<CatalogTopic[]>([]);
+	const color = (section?: string | null) => (section ? topicLook(section, topics).color : 'grey');
 	const paper = $derived(edition ? (edition.payload as unknown as EditionPayload) : null);
 
 	$effect(() => {
 		unwrap(api.GET('/api/v1/editions/{edition_id}', { params: { path: { edition_id: id } } }))
 			.then((e) => (edition = e))
 			.catch((e: Error) => (error = e.message));
+		api.GET('/api/v1/catalog').then(({ data }) => (topics = data?.topics ?? []));
 	});
 </script>
 
 {#snippet story(item: StoryItem, level: 'h2' | 'h3')}
-	<article class="story {item.size ?? 'medium'}">
+	<article class="story {item.size ?? 'medium'} topic-{color(item.section)}">
 		<header>
+			{#if item.section}<p class="kicker">{item.section}</p>{/if}
 			<svelte:element this={level} class="headline">{item.headline}</svelte:element>
 			{#if item.subhead}<p class="deck">{item.subhead}</p>{/if}
 			<p class="meta">
-				{item.source}{#if item.published} · {item.published}{/if}{#if item.excerpt} · {t('edition.excerpt')}{/if}
+				{[item.source, item.published, item.excerpt ? t('edition.excerpt') : null].filter(Boolean).join(' · ')}
 			</p>
 		</header>
 		{#each item.body as paragraph, i (i)}<p class:first={i === 0}>{paragraph}</p>{/each}
@@ -57,19 +62,22 @@
 
 	<div class="newspaper" lang={paper.edition.lang}>
 		<header class="paper-head">
-			<p class="paper-title">{paper.masthead.title}</p>
+			<p class="paper-title"><img src="/rider.svg" alt="" width="72" height="43" />{paper.masthead.title}</p>
 			<p class="paper-meta">
-				{t('edition.for', { reader: paper.edition.reader })} · {t('editions.number', {
-					number: paper.edition.number
-				})} · <time datetime={paper.edition.date}>{paper.edition.date_label}</time>
+				<span>{t('edition.for', { reader: paper.edition.reader })} · {t('editions.number', {
+						number: paper.edition.number
+					})}</span>
+				<time datetime={paper.edition.date}>{paper.edition.date_label}</time>
+				{#if paper.weather}
+					<span>
+						<strong>{t('edition.weather')} {paper.weather.place}:</strong>
+						{paper.weather.summary}, {paper.weather.temp_min}° / {paper.weather.temp_max} °C
+					</span>
+				{/if}
 			</p>
-			{#if paper.weather}
-				<p class="weather">
-					<strong>{t('edition.weather')} {paper.weather.place}:</strong>
-					{paper.weather.summary}, {paper.weather.temp_min}° / {paper.weather.temp_max} °C · {paper.weather.wind}
-				</p>
-			{/if}
-			<p class="sections">· {paper.sections.join(' · ')} ·</p>
+			<ul class="sections" aria-label={t('edition.sections')}>
+				{#each paper.sections as section (section)}<li class="topic-{color(section)}">{section}</li>{/each}
+			</ul>
 		</header>
 
 		{#if paper.lead}
@@ -124,124 +132,180 @@
 		font-family: var(--font-body);
 		font-size: 1.0625rem;
 		line-height: 1.6;
-		border: 4px double var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow);
 		padding: 1rem;
-		background: var(--paper);
 		hyphens: auto;
 		overflow-wrap: break-word;
 	}
 	.paper-head {
-		text-align: center;
-		border-bottom: 4px double var(--ink);
-		margin-bottom: 1rem;
+		margin-bottom: 1.25rem;
+		font-family: var(--font-ui);
 	}
 	.paper-title {
-		font-family: 'Chomsky', serif;
-		font-size: clamp(2.5rem, 10vw, 4.5rem);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		font-family: var(--font-display);
+		font-weight: 900;
+		font-size: clamp(2.4rem, 9vw, 4rem);
 		line-height: 1;
+		margin: 0 0 0.5rem;
+	}
+	.paper-title img {
+		width: clamp(48px, 10vw, 80px);
+		height: auto;
+	}
+	@media (prefers-color-scheme: dark) {
+		.paper-title img {
+			filter: invert(0.9);
+		}
+	}
+	.paper-meta {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 0.25rem 1rem;
+		font-size: 0.85rem;
+		color: var(--muted);
+		border-bottom: 3px solid var(--ink);
+		padding-bottom: 0.4rem;
 		margin: 0;
 	}
-	.paper-meta,
 	.sections {
-		font-family: var(--font-label);
-		letter-spacing: 0.06em;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.25rem 1.25rem;
+		list-style: none;
+		margin: 0;
+		padding: 0.45rem 0;
+		border-bottom: 1px solid var(--line);
+		font-size: 0.8rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		margin: 0.25rem 0;
 	}
-	.sections {
-		background: var(--ink);
-		color: var(--paper);
-		padding: 0.2rem 0.5rem;
+	.sections li {
+		color: var(--t);
 	}
-	.weather {
-		font-size: 0.95rem;
-		margin: 0.25rem 0;
+	.kicker {
+		font-family: var(--font-ui);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--t);
+		margin: 0 0 0.2rem;
 	}
 	.headline {
-		font-family: var(--font-label);
-		text-transform: uppercase;
-		text-align: center;
+		font-family: var(--font-display);
+		font-weight: 700;
+		line-height: 1.15;
 		hyphens: manual;
-		margin: 0.5rem 0 0.25rem;
+		margin: 0 0 0.3rem;
+		font-size: 1.35rem;
+	}
+	.story.large .headline {
+		font-size: 1.6rem;
 	}
 	.lead .headline {
-		font-size: clamp(2rem, 7vw, 3rem);
+		font-size: clamp(1.9rem, 6vw, 2.8rem);
 	}
 	.deck {
-		text-align: center;
-		font-style: italic;
-		font-size: 1.15em;
-		margin: 0.25rem 0;
-		border-top: 1px solid var(--ink);
-		border-bottom: 1px solid var(--ink);
-		padding: 0.25rem 0;
+		font-family: var(--font-ui);
+		font-size: 1.05rem;
+		line-height: 1.4;
+		margin: 0 0 0.3rem;
+	}
+	.lead .deck {
+		font-size: 1.2rem;
 	}
 	.meta {
+		font-family: var(--font-ui);
 		color: var(--muted);
-		font-style: italic;
-		font-size: 0.875rem;
-		text-align: right;
-		margin: 0.25rem 0 0.5rem;
+		font-size: 0.8rem;
+		margin: 0 0 0.6rem;
 	}
 	.story p {
 		margin: 0 0 0.75rem;
-	}
-	.story p.first::first-letter {
-		font-family: 'Chomsky', serif;
-		float: left;
-		font-size: 3.2em;
-		line-height: 0.85;
-		padding: 0.08em 0.08em 0 0;
 	}
 	.story {
 		break-inside: avoid-column;
 		border-bottom: 1px solid var(--line);
 		padding-bottom: 0.75rem;
-		margin-bottom: 1rem;
+		margin-bottom: 1.25rem;
 	}
 	.lead {
-		border-bottom: 4px double var(--ink);
-		margin-bottom: 1rem;
+		border-bottom: 2px solid var(--ink);
+		margin-bottom: 1.25rem;
 	}
-	.background,
-	.box {
-		border: 3px double var(--ink);
-		padding: 0.5rem 0.75rem;
+	.lead .story {
+		border-bottom: 0;
+	}
+	.background {
+		background: var(--band);
+		border-left: 3px solid var(--brand);
+		padding: 0.6rem 0.9rem;
 		margin: 0.5rem 0 1rem;
+		font-size: 0.95rem;
+		break-inside: avoid-column;
+	}
+	.box {
+		border-top: 3px solid var(--ink);
+		padding-top: 0.4rem;
+		margin: 0 0 1.5rem;
 		break-inside: avoid-column;
 	}
 	.label,
 	.box h2 {
-		font-family: var(--font-label);
+		font-family: var(--font-ui);
+		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
-		font-size: 1.2rem;
-		margin: 0 0 0.25rem;
+		font-size: 0.85rem;
+		margin: 0 0 0.4rem;
+	}
+	.label {
+		color: var(--brand);
 	}
 	.background ul {
 		margin: 0;
 		padding-left: 1.1rem;
 	}
 	blockquote {
-		margin: 0 0 0.5rem;
+		margin: 0 0 0.75rem;
+		font-family: var(--font-display);
 		font-style: italic;
 	}
 	blockquote p {
 		margin: 0;
 	}
+	blockquote footer {
+		font-family: var(--font-ui);
+		font-style: normal;
+		font-size: 0.85rem;
+		color: var(--muted);
+	}
 	dl {
 		margin: 0;
 	}
 	dt {
-		font-family: var(--font-label);
+		font-family: var(--font-ui);
+		font-weight: 700;
+		font-size: 0.8rem;
 		letter-spacing: 0.05em;
+		text-transform: uppercase;
 	}
 	dd {
 		margin: 0 0 0.4rem;
 	}
 	@media (min-width: 48rem) {
 		.newspaper {
-			padding: 1.5rem 2rem;
+			padding: 1.5rem 2rem 2rem;
 		}
 		.columns {
 			column-count: 2;

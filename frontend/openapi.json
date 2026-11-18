@@ -142,7 +142,7 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/Theme",
-              "default": "klassisch"
+              "default": "epaper"
             }
           }
         ],
@@ -1520,7 +1520,7 @@
           },
           "theme": {
             "$ref": "#/components/schemas/Theme",
-            "default": "klassisch"
+            "default": "epaper"
           },
           "paper": {
             "type": "string",
@@ -1619,7 +1619,7 @@
           },
           "theme": {
             "$ref": "#/components/schemas/Theme",
-            "default": "klassisch"
+            "default": "epaper"
           },
           "paper": {
             "type": "string",
@@ -1932,7 +1932,8 @@
         "enum": [
           "klassisch",
           "feuilleton",
-          "grossdruck"
+          "grossdruck",
+          "epaper"
         ],
         "title": "Theme"
       },

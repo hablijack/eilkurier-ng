@@ -459,7 +459,7 @@ def system_status(session: SessionDep, settings: SettingsDep) -> StatusOut:
 )
 def sample_edition_pdf(
     renderer: Annotated[EditionRenderer, Depends(get_renderer)],
-    theme: Theme = Theme.KLASSISCH,
+    theme: Theme = Theme.EPAPER,
 ) -> Response:
     """Typesets the bundled sample edition in the given theme (layout preview)."""
     pdf = renderer.render_pdf(renderer.sample_edition(theme))

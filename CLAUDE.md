@@ -63,8 +63,9 @@ After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd
   `EILKURIER_RESOURCE_ROOT`), so layout paths like `/assets/brand/rider.svg` are root-absolute. Fonts come
   only from `assets/fonts/`. Typst Universe packages (`droplet` for drop caps, `tiaoma` for QR codes) are
   downloaded on first compile; the Dockerfile warms that cache.
-- **Themes** are dicts in `layout/themes.typ` (`klassisch`, `feuilleton`, `grossdruck`), each derived from
-  `base`. Fixed print labels live in `layout/i18n.typ` per language (`edition.lang`).
+- **Themes** are dicts in `layout/themes.typ` (`epaper` = default, `klassisch`, `feuilleton`, `grossdruck`), each
+  derived from `base`. `modern: true` (epaper) switches components in `eilkurier.typ` to the e-paper variants
+  (masthead, kickers in `section-colors`, tinted boxes, no frames/drop caps). Fixed print labels live in `layout/i18n.typ` per language (`edition.lang`).
 
 ## Layout gotchas (Typst)
 

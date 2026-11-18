@@ -143,7 +143,7 @@ def test_status_without_language_model(client) -> None:
     assert status["counts"]["articles_total"] == 0
 
 
-@pytest.mark.parametrize("theme", ["klassisch", "feuilleton", "grossdruck"])
+@pytest.mark.parametrize("theme", ["epaper", "klassisch", "feuilleton", "grossdruck"])
 def test_sample_edition_pdf(client, theme) -> None:
     response = client.get("/api/v1/samples/edition.pdf", params={"theme": theme})
     assert response.status_code == 200 and response.content.startswith(b"%PDF")

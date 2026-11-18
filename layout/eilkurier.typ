@@ -23,18 +23,27 @@
 )
 
 // Italic deck between two short ornament rules (the old `.hl2` style).
-#let deck(t, body) = align(center, block(width: 100%, below: 0.7em, sticky: true, stack(
+#let deck(t, body) = if t.modern {
+  block(width: 100%, above: 0.3em, below: 0.6em, sticky: true, par(justify: false, leading: 0.45em, text(
+    font: t.deck-font,
+    size: t.body-size * 1.2,
+    fill: t.ink,
+    body,
+  )))
+} else { align(center, block(width: 100%, below: 0.7em, sticky: true, stack(
   spacing: t.body-size * 0.9,
   line(length: 28%, stroke: 0.5pt + t.ink),
   par(justify: false, text(font: t.deck-font, style: "italic", size: t.body-size * 1.25, fill: t.ink, body)),
   line(length: 28%, stroke: 0.5pt + t.ink),
-)))
+))) }
 
 #let label-text(t, body, size: 11pt, fill: none) = text(
-  font: "Bebas Neue",
+  font: t.label-font,
+  weight: t.label-weight,
   hyphenate: false,
-  size: size,
-  tracking: 0.8pt,
+  // Bebas Neue is a display face; the e-paper's Fira Sans labels are set smaller and tighter.
+  size: if t.modern { size * 0.72 } else { size },
+  tracking: if t.modern { 0.6pt } else { 0.8pt },
   fill: if fill == none { t.ink } else { fill },
   upper(body),
 )
@@ -44,7 +53,24 @@
   if s.at("teaser_only", default: false) { parts.push(l.teaser-only) }
   // `excerpt`: printed straight from the source text because the reporter (LLM) had no time for it yet.
   if s.at("excerpt", default: false) { parts.push(l.excerpt) }
-  block(sticky: true, width: 100%, align(right, text(size: t.body-size * 0.85, fill: t.muted, style: "italic")[(#parts.join(" · "))]))
+  if t.modern {
+    block(sticky: true, width: 100%, below: 0.6em, text(font: t.label-font, size: t.body-size * 0.8, fill: t.muted, parts.join(" · ")))
+  } else {
+    block(sticky: true, width: 100%, align(right, text(size: t.body-size * 0.85, fill: t.muted, style: "italic")[(#parts.join(" · "))]))
+  }
+}
+
+#let section-color(t, name) = t.section-colors.at(name, default: t.accent)
+
+// e-paper: the section above the headline, in the section's colour.
+#let kicker(t, s) = if t.modern and s.at("section", default: none) != none {
+  block(below: 0.35em, sticky: true, label-text(t, s.section, size: t.body-size * 1.15, fill: section-color(t, s.section)))
+}
+
+#let separator(t) = if t.modern {
+  line(length: 100%, stroke: 0.5pt + t.rule)
+} else {
+  align(center, line(length: 40%, stroke: 0.5pt + t.ink))
 }
 
 #let paragraphs(ps) = ps.map(p => [#p]).join(parbreak())
@@ -118,7 +144,7 @@
   hyphenate: false,
 )[#ps.first()]
 
-#let body-with-dropcap(t, ps, lines) = {
+#let body-with-dropcap(t, ps, lines) = if t.drop-lines == 0 { paragraphs(ps) } else {
   first-with-dropcap(t, ps, lines)
   if ps.len() > 1 { parbreak(); paragraphs(ps.slice(1)) }
 }
@@ -129,7 +155,7 @@
     gutter: 5pt,
     align: horizon,
     box(tiaoma.qrcode(url, width: size, alt: l.qr-alt + " " + url)),
-    text(size: t.body-size * 0.8, fill: t.muted, l.to-original),
+    text(font: if t.modern { t.label-font } else { t.body-font }, size: t.body-size * 0.8, fill: t.muted, l.to-original),
   )
 }
 
@@ -137,12 +163,17 @@
 #let background-box(t, s, l) = {
   let bg = s.at("background", default: none)
   if bg != none {
-    block(width: 100%, above: 0.6em, below: 0.8em, double-box(t)[
+    let content = [
       #set par(justify: true)
       #set text(size: t.body-size * 0.92)
-      #label-text(t, l.background, size: t.body-size * 1.2) \
+      #label-text(t, l.background, size: t.body-size * 1.2, fill: if t.modern { t.accent } else { none }) \
       #paragraphs(bg)
-    ])
+    ]
+    if t.modern {
+      block(width: 100%, above: 0.6em, below: 0.8em, fill: t.tint, inset: 7pt, stroke: (left: 2.5pt + t.accent), content)
+    } else {
+      block(width: 100%, above: 0.6em, below: 0.8em, double-box(t, content))
+    }
   }
 }
 
@@ -152,6 +183,7 @@
 
 #let story(t, s, l, level: 3) = block(width: 100%, breakable: true, below: 1.4em)[
   // Headline, deck and source line are sticky blocks: they never end up alone at a column foot.
+  #kicker(t, s)
   #{
     set text(size: t.story-sizes.at(s.at("size", default: "medium")))
     heading(level: level, s.headline)
@@ -162,10 +194,11 @@
   #background-box(t, s, l)
   #qr(t, s.at("url", default: none), l, size: 1.2cm)
   #v(0.2em)
-  #align(center, line(length: 40%, stroke: 0.5pt + t.ink))
+  #separator(t)
 ]
 
 #let lead-story(t, s, l) = block(width: 100%, below: 1em)[
+  #kicker(t, s)
   #{
     set text(size: t.lead-size)
     heading(level: 2, s.headline)
@@ -214,7 +247,52 @@
   #text(style: "italic", l.price)
 ]
 
-#let masthead(t, ed, l) = {
+// e-paper masthead: no frames; edition and weather as quiet side notes, thick and thin rule below,
+// the sections as a coloured index line.
+#let masthead-modern(t, ed, l) = {
+  let m = ed.masthead
+  let e = ed.edition
+  let w = ed.at("weather", default: none)
+  let side(body) = par(justify: false, text(font: t.label-font, size: 8pt, fill: t.muted, hyphenate: false, body))
+  grid(
+    columns: (1fr, auto, 1fr),
+    gutter: 4mm,
+    align: (left + bottom, center + bottom, right + bottom),
+    side[
+      #text(weight: "semibold", fill: t.ink)[#l.edition-for #e.reader] \
+      #l.edition-no #e.number · #l.price
+    ],
+    stack(
+      dir: ltr,
+      spacing: 3mm,
+      align(horizon, image("/assets/brand/rider.svg", height: t.masthead-size * 0.85, alt: "Eilkurier Logo: galoppierender Kurierreiter")),
+      align(horizon, box(text(font: t.masthead-font, size: t.masthead-size, weight: "black", fill: t.ink, hyphenate: false, heading(level: 1, outlined: false, m.title)))),
+    ),
+    side(if w != none [
+      #text(weight: "semibold", fill: t.ink)[#l.weather #w.place] \
+      #w.summary · #w.temp_min° / #w.temp_max° C
+    ]),
+  )
+  v(1mm)
+  grid(
+    columns: (1fr, auto, 1fr),
+    align: (left, center, right),
+    label-text(t, e.date_label, size: 11pt),
+    label-text(t, m.slogan, size: 11pt, fill: t.accent),
+    label-text(t, m.region + " · " + m.since, size: 11pt),
+  )
+  v(-1mm)
+  line(length: 100%, stroke: 2pt + t.ink)
+  v(-3.2mm)
+  line(length: 100%, stroke: 0.5pt + t.ink)
+  v(-1mm)
+  align(center, ed.sections.map(sec => label-text(t, sec, size: 12pt, fill: section-color(t, sec))).join(h(5mm)))
+  v(-1mm)
+  line(length: 100%, stroke: 0.5pt + t.rule)
+  v(3mm)
+}
+
+#let masthead(t, ed, l) = if t.modern { masthead-modern(t, ed, l) } else {
   let m = ed.masthead
   grid(
     columns: (1fr, 2.8fr, 1fr),
@@ -255,13 +333,19 @@
 // Side sections
 // ---------------------------------------------------------------------------------------------
 
-#let section-title(t, title) = block(below: 0.5em, width: 100%, sticky: true, {
+#let section-title(t, title) = if t.modern {
+  block(below: 0.6em, width: 100%, sticky: true, {
+    line(length: 100%, stroke: 2pt + t.ink)
+    v(-1pt)
+    label-text(t, title, size: t.body-size * 1.6)
+  })
+} else { block(below: 0.5em, width: 100%, sticky: true, {
   double-rule(t)
   v(-2pt)
   align(center, label-text(t, title, size: t.body-size * 1.6))
   v(-6pt)
   line(length: 100%, stroke: 0.7pt + t.ink)
-})
+}) }
 
 #let briefs(t, items, l) = if items.len() > 0 {
   block(width: 100%, breakable: true, below: 1.4em)[
@@ -278,7 +362,7 @@
   block(width: 100%, breakable: true, below: 1.4em)[
     #section-title(t, l.family)
     #for f in items [
-      #par(justify: false, text(font: t.deck-font, style: "italic", size: t.body-size * 1.15)[„#f.text“])
+      #par(justify: false, text(font: if t.modern { t.head-font } else { t.deck-font }, style: "italic", size: t.body-size * 1.15)[„#f.text“])
       #align(right, text(fill: t.muted, size: t.body-size * 0.9)[— #f.from])
     ]
   ]
@@ -328,13 +412,14 @@
     margin: (x: margin-x, top: 13mm, bottom: 17mm),
     // Paper tint looks lovely on screens and tablets; switch it off when printing on real paper.
     fill: if tint { t.paper } else { none },
-    background: {
+    background: if not t.modern {
       place(top + left, dx: 6mm, dy: 6mm, rect(width: 100% - 12mm, height: 100% - 12mm, stroke: 0.8pt + t.ink))
       place(top + left, dx: 7.4mm, dy: 7.4mm, rect(width: 100% - 14.8mm, height: 100% - 14.8mm, stroke: 0.8pt + t.ink))
     },
     footer: context {
       set text(size: 8pt, fill: t.muted)
-      line(length: 100%, stroke: 0.5pt + t.ink)
+      set text(font: t.label-font) if t.modern
+      line(length: 100%, stroke: 0.5pt + if t.modern { t.rule } else { t.ink })
       v(-2mm)
       grid(
         columns: (1fr, auto, 1fr),
@@ -349,11 +434,11 @@
   set par(justify: true, leading: t.leading, spacing: t.leading * 1.6)
 
   show heading.where(level: 1): it => it.body
-  show heading.where(level: 2).or(heading.where(level: 3)): it => block(width: 100%, above: 0.4em, below: 0.45em, sticky: true, align(center, par(justify: false, leading: 0.35em, text(
+  show heading.where(level: 2).or(heading.where(level: 3)): it => block(width: 100%, above: 0.4em, below: 0.45em, sticky: true, align(if t.modern { left } else { center }, par(justify: false, leading: if t.modern { 0.3em } else { 0.35em }, text(
     font: t.head-font,
     weight: t.head-weight,
     fill: t.ink,
-    hyphenate: it.level > 2, // never break the lead headline
+    hyphenate: it.level > 2 and not t.modern, // never break the lead headline; e-paper heads never
     if t.head-upper { upper(it.body) } else { it.body },
   ))))
 
@@ -361,7 +446,7 @@
 
   if ed.at("lead", default: none) != none {
     lead-story(t, ed.lead, l)
-    double-rule(t)
+    if t.modern { line(length: 100%, stroke: 1pt + t.ink) } else { double-rule(t) }
     v(2mm)
   }
 

@@ -16,7 +16,7 @@ Weekday = Annotated[int, Field(ge=1, le=7)]
 class ReaderIn(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     language: Language = "de"
-    theme: Theme = Theme.KLASSISCH
+    theme: Theme = Theme.EPAPER
     paper: Paper = "a4"
     font_scale: float = Field(1.0, ge=0.8, le=1.6)
     paper_tint: bool = True

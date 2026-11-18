@@ -61,7 +61,7 @@ class Reader(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(80))
     language: Mapped[str] = mapped_column(String(8), default="de")
-    theme: Mapped[str] = mapped_column(String(32), default="klassisch")
+    theme: Mapped[str] = mapped_column(String(32), default="epaper")
     paper: Mapped[str] = mapped_column(String(8), default="a4")
     font_scale: Mapped[float] = mapped_column(Float, default=1.0)
     paper_tint: Mapped[bool] = mapped_column(Boolean, default=True)

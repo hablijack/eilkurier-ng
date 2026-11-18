@@ -56,7 +56,7 @@ def main() -> None:
     commands = parser.add_subparsers(dest="command", required=True)
 
     sample = commands.add_parser("render-sample", help="Typeset the sample edition into a PDF")
-    sample.add_argument("--theme", type=Theme, choices=list(Theme), default=Theme.KLASSISCH)
+    sample.add_argument("--theme", type=Theme, choices=list(Theme), default=Theme.EPAPER)
     sample.add_argument("--output", "-o", type=Path, default=Path("eilkurier-beispiel.pdf"))
 
     commands.add_parser("migrate", help="Apply database migrations (run once before app and worker)")

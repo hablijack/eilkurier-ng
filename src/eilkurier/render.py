@@ -18,6 +18,7 @@ class Theme(StrEnum):
     KLASSISCH = "klassisch"
     FEUILLETON = "feuilleton"
     GROSSDRUCK = "grossdruck"
+    EPAPER = "epaper"
 
 
 class EditionRenderer:
@@ -44,7 +45,7 @@ class EditionRenderer:
         )
         return pdf, [str(getattr(w, "message", w)) for w in warnings]
 
-    def sample_edition(self, theme: Theme = Theme.KLASSISCH) -> Edition:
+    def sample_edition(self, theme: Theme = Theme.EPAPER) -> Edition:
         edition = json.loads((self.root / "layout" / "sample" / "edition.json").read_text("utf-8"))
         edition["style"]["theme"] = theme.value
         return edition

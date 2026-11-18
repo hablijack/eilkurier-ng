@@ -8,13 +8,14 @@
 
 <fieldset>
 	<legend>{t('profile.theme')}</legend>
-	<div class="grid three">
+	<div class="grid two">
 		{#each themes as theme (theme)}
 			<label class="theme theme-{theme}">
 				<input type="radio" name="theme" value={theme} bind:group={form.theme} />
 				<span class="sample" aria-hidden="true">
 					<span class="sample-mast">Eilkurier</span>
 					<span class="sample-line"></span>
+					{#if theme === 'epaper'}<span class="sample-kicker"></span>{/if}
 					<span class="sample-head">{t('style.sampleHeadline')}</span>
 					<span class="sample-text"></span>
 					<span class="sample-text short"></span>
@@ -141,6 +142,29 @@
 		font-family: var(--font-display);
 		font-weight: 700;
 		font-size: 0.9rem;
+	}
+	.theme-epaper .sample {
+		background: #fdfdfb;
+		color: #1d1f23;
+		border-color: #dfe2e6;
+	}
+	.theme-epaper .sample-mast {
+		font-family: var(--font-display);
+		font-weight: 900;
+	}
+	.theme-epaper .sample-line {
+		border-top: 2px solid #1d1f23;
+	}
+	.sample-kicker {
+		width: 30%;
+		height: 5px;
+		border-radius: 2px;
+		background: #1d5aa0;
+	}
+	.theme-epaper .sample-head {
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: 0.95rem;
 	}
 	.theme-grossdruck .sample-head {
 		font-size: 1.35rem;

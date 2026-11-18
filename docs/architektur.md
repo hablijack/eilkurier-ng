@@ -122,7 +122,9 @@ HTML-Fassung kennen nur dieses Format. Referenz ist [`layout/sample/edition.json
 - **Marke:** Name, Slogan („Nachrichten, wie Sie sein sollten“) und Anmutung stammen aus dem Eilkurier von
   2018–2022. Das Logo ist neu gezeichnet ([`assets/brand/rider.svg`](../assets/brand/rider.svg)), weil das alte
   Reiterbild ein Stockfoto mit Wasserzeichen war.
-- **Stile:** `klassisch` (Chomsky-Titel, Bebas-Neue-Überschriften, Papierton, Doppellinien, Fraktur-Initialen),
+- **Stile:** `epaper` (Standard: moderne Tageszeitung, Playfair-Display-Überschriften linksbündig, Rubriken als
+  farbige Dachzeilen in den Themenfarben der Weboberfläche, Fira Sans für Kopf, Quellenzeile und Kästen, dünne graue
+  Linien, keine Rahmen und Initialen), `klassisch` („Retro“: Chomsky-Titel, Bebas-Neue-Überschriften, Papierton, Doppellinien, Fraktur-Initialen),
   `feuilleton` (Playfair Display, ruhiger) und `grossdruck` (13 pt, zwei Spalten, dunklerer Nebentext).
   Weitere Stile sind Einträge in `layout/themes.typ`.
 - **Spalten:** Die letzte Seite wird ausgeglichen gesetzt, Rubrik- und Artikelköpfe bleiben beim Text.
