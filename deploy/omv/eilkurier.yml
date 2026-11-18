@@ -59,8 +59,9 @@ services:
   app:
     <<: *eilkurier
     ports:
-      # Weboberfläche: http://<rechner>:8080 (linke Zahl ändern, falls der Port belegt ist)
-      - "8080:8080"
+      # Weboberfläche: http://<rechner>:8095 (linke Zahl ändern, falls der Port belegt ist;
+      # 8080 ist auf Servern oft schon vergeben)
+      - "8095:8080"
     depends_on:
       migrate:
         condition: service_completed_successfully
