@@ -51,6 +51,10 @@ class SourceIn(BaseModel):
     url: HttpUrl
     category: str = Field("Allgemein", min_length=1, max_length=80)
     fetch_fulltext: bool = True
+    image_mode: Literal["auto", "feed", "page", "none"] = Field(
+        "auto",
+        description="Where pictures come from: auto = article page, else feed; feed; page (og:image); none",
+    )
     enabled: bool = True
 
 
@@ -63,6 +67,7 @@ class SourceOut(BaseModel):
     url: str
     category: str
     fetch_fulltext: bool
+    image_mode: str
     enabled: bool
     last_fetched_at: datetime | None
     last_error: str | None
@@ -85,6 +90,7 @@ class CatalogEntry(BaseModel):
     language: str = "de"
     group: str | None = Field(None, description="Sub-heading within a topic, e.g. the publisher")
     recommended: bool = False
+    images: Literal["auto", "feed", "page", "none"] = "auto"
     source_id: int | None = Field(None, description="Set when the entry has been added as a source")
 
 

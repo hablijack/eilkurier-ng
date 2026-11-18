@@ -92,6 +92,20 @@ def test_sources_and_catalog(client) -> None:
     assert client.delete(f"/api/v1/sources/{sources[0]['id']}").status_code == 204
 
 
+def test_pictures_are_served_as_jpeg(client, engine) -> None:
+    from eilkurier.db import Image, session_scope
+
+    with session_scope(engine) as s:
+        image = Image(url="https://img.example.org/a.jpg", data=b"\xff\xd8jpeg", width=800, height=600)
+        s.add(image)
+        s.flush()
+        image_id = image.id
+    response = client.get(f"/api/v1/images/{image_id}")
+    assert response.status_code == 200 and response.headers["content-type"] == "image/jpeg"
+    assert "immutable" in response.headers["cache-control"]
+    assert client.get("/api/v1/images/999").status_code == 404
+
+
 def test_wizard_adopts_catalog_sources_in_order(client) -> None:
     urls = [e["url"] for e in client.get("/api/v1/catalog").json()["sources"][:3]]
     first = client.post("/api/v1/catalog/sources", json=[urls[2], urls[0]]).json()
@@ -99,6 +113,10 @@ def test_wizard_adopts_catalog_sources_in_order(client) -> None:
     again = client.post("/api/v1/catalog/sources", json=urls).json()  # existing ones are reused
     assert again[2]["id"] == first[0]["id"] and len(client.get("/api/v1/sources").json()) == 3
     assert client.post("/api/v1/catalog/sources", json=["https://example.org/x"]).status_code == 422
+    # Where pictures come from is set per catalog entry (checked against the real sites, 2026-11).
+    entries = {e["name"]: e for e in client.get("/api/v1/catalog").json()["sources"]}
+    heise = client.post("/api/v1/catalog/sources", json=[entries["heise online News"]["url"]]).json()[0]
+    assert heise["image_mode"] == "page"  # the feed only has 450 px thumbnails
 
     rid = client.post("/api/v1/readers", json={"name": "Oma"}).json()["id"]
     order = [again[1]["id"], again[2]["id"], again[0]["id"]]

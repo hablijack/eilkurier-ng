@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     fetch_interval_minutes: int = 30
     fulltext_batch: int = 20
     enrich_batch: int = 10
+    # Pictures downloaded per worker pass (only for articles likely to be printed).
+    image_batch: int = 6
     article_retention_days: int = 60
     story_window_days: int = 14
     user_agent: str = "Eilkurier/1.0 (private family newspaper; +https://github.com/hablijack/eilkurier-ng)"

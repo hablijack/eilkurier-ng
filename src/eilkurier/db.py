@@ -49,6 +49,15 @@ class Status(StrEnum):
     SKIPPED = "skipped"
 
 
+class ImageMode(StrEnum):
+    """Where a source's pictures come from."""
+
+    AUTO = "auto"  # from the feed, otherwise from the article page
+    FEED = "feed"  # only the picture the feed entry carries (media:content, enclosure, <img>)
+    PAGE = "page"  # only the article page's preview picture (og:image / twitter:image)
+    NONE = "none"  # never: logos only, stock photos, or the family does not want them
+
+
 class Channel(StrEnum):
     TELEGRAM = "telegram"
     EMAIL = "email"
@@ -106,6 +115,7 @@ class Source(Base):
     url: Mapped[str] = mapped_column(String(1000), unique=True)
     category: Mapped[str] = mapped_column(String(80), default="Allgemein")
     fetch_fulltext: Mapped[bool] = mapped_column(Boolean, default=True)
+    image_mode: Mapped[str] = mapped_column(String(16), default=ImageMode.AUTO, server_default="auto")
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     etag: Mapped[str | None] = mapped_column(String(300))
     last_modified: Mapped[str | None] = mapped_column(String(100))
@@ -163,7 +173,18 @@ class Article(Base):
     story_id: Mapped[int | None] = mapped_column(ForeignKey("stories.id", ondelete="SET NULL"), index=True)
     story_status: Mapped[str] = mapped_column(String(16), default=Status.PENDING, index=True)
 
+    # Picture: found in the feed at collection time, or on the page with the full text (`image_url`);
+    # downloaded and downscaled only for articles that are likely to be printed (`images.fetch`).
+    image_url: Mapped[str | None] = mapped_column(String(2000))
+    image_alt: Mapped[str | None] = mapped_column(Text)
+    image_credit: Mapped[str | None] = mapped_column(String(300))
+    image_status: Mapped[str] = mapped_column(
+        String(16), default=Status.SKIPPED, server_default="skipped", index=True
+    )
+    image_id: Mapped[int | None] = mapped_column(ForeignKey("images.id", ondelete="SET NULL"), index=True)
+
     source: Mapped[Source] = relationship()
+    image: Mapped["Image | None"] = relationship()
     story: Mapped[Story | None] = relationship(back_populates="articles")
 
     @property
@@ -173,6 +194,19 @@ class Article(Base):
     @property
     def best_text(self) -> str:
         return self.fulltext or self.teaser or ""
+
+
+class Image(Base):
+    """A downscaled JPEG, shared by all articles (and editions) that use the same picture URL."""
+
+    __tablename__ = "images"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    url: Mapped[str] = mapped_column(String(2000), unique=True)
+    data: Mapped[bytes] = mapped_column(LargeBinary, deferred=True)
+    width: Mapped[int] = mapped_column(Integer)
+    height: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class CalendarEvent(Base):

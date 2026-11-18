@@ -56,6 +56,7 @@ auf Wunsch auch ausgedruckt.
 |---|---|---|---|
 | 1. Sammeln | RSS/Atom (ETag/Last-Modified, höflich gedrosselt), ICS-Kalender (14 Tage voraus) | Pi | alle 30 min |
 | 2. Volltext | Artikelseite laden, Haupttext mit **trafilatura**; Cookie-/Paywall-Seiten und verwürfelter Paywall-Text werden erkannt, dann bleibt es beim Anreißer | Pi | pro neuem Artikel |
+| 2b. Bilder | Fundort je Quelle (`image_mode`): `feed` (media:content, Enclosure, erstes `<img>`), `page` (Vorschaubild der Artikelseite, `og:image`), `auto` (Seite, sonst Feed), `none`. Gefunden wird bei jedem Artikel (Feed und Seite werden ohnehin geladen), **heruntergeladen nur für Artikel, die ein Leser wahrscheinlich gedruckt bekommt** (gleiche Auswahl wie die Ausgabe, 6 pro Durchlauf). Verkleinert auf 1400 px, JPEG ohne Metadaten, in Postgres (`images`). Zu klein (< 400 px), Banner-Formate und dasselbe Bild bei 3 Artikeln einer Quelle (Logo/Platzhalter) werden verworfen. | Pi | pro wahrscheinlich gedrucktem Artikel |
 | 3. Anreichern | **einmal pro Artikel**: Überschrift, Unterzeile, Zusammenfassung, Ereignis in einem Satz, Themen, Wichtigkeit (strikte JSON-Schema-Ausgabe). Zuerst kommen die Artikel, die ein Leser wahrscheinlich gedruckt bekommt (gleiche Bewertung wie bei der Auswahl), danach der Rest. | Jetson | sobald erreichbar |
 | 4. Geschichten | Kandidaten über Embedding-Ähnlichkeit (ohne Embeddings: Themen-Überlappung), das LLM wählt eine laufende Geschichte oder „neu“ | Jetson | sobald erreichbar |
 | 5. Auswahl | Je Leser: Interessen × Themen, Wichtigkeit, Aktualität, Quellenvielfalt, eine Meldung pro Geschichte, nichts doppelt aus den letzten Ausgaben | Pi (ohne LLM) | vor jeder Ausgabe |
@@ -102,6 +103,13 @@ Zeitung eines Lesers: Themen wählen → Zeitungen wählen (Empfehlungen vorausg
 Zustellung und Stil. Die Reihenfolge (`reader_sources.position`) gibt bei der Artikelauswahl einen Bonus von bis zu
 1,5 Punkten für die wichtigste Quelle.
 
+Woher die Bilder einer Katalog-Zeitung kommen (`images`), ist am 18.11.2026 an allen 57 Quellen gemessen worden:
+meist liefern Feed und Seite dasselbe Bild in 1200–1920 px (`auto`). heise, Heise Make, SPIEGEL, OMG! Ubuntu,
+Adafruit Learning und Digital Present haben im Feed nur kleine Vorschaubilder → `page`. Golem, ZEIT, SZ und
+Adafruit Blog zeigen beim Seitenabruf eine Cookie-Wand → `feed`. SZ-Eilmeldungen haben keine Bilder → `none`.
+Bilder sind urheberrechtlich geschützt: Der Eilkurier druckt sie nur für die Familie und nennt immer den
+Bildnachweis (`media:credit`, sonst den Namen der Quelle).
+
 Ideen: Presseportal (Polizei/Behörden der Region), Newsletter über ein IMAP-Postfach, YouTube (RSS +
 Transkript), Pollenflug, Spritpreise (Tankerkönig), Bundesliga (OpenLigaDB), Müllabfuhr, Fotos an den Bot,
 „Vor 5 Jahren“ aus Immich, Rätselecke (Sudoku programmatisch), Home-Assistant-Werte als Infografik.
@@ -114,7 +122,10 @@ HTML-Fassung kennen nur dieses Format. Referenz ist [`layout/sample/edition.json
 - `masthead`, `edition` (Nummer, Datum, Leser, `lang`), `style` (`theme`, `paper`, `font_scale`, `paper_tint`)
 - `weather`, `sections` (Rubrikenleiste)
 - `lead` und `stories[]`: `headline`, `subhead`, `body[]` (Absätze), `source`, `published`, `url`,
-  `teaser_only`, `excerpt`, `size` (`large|medium|small`), `background[]` („Was bisher geschah“)
+  `teaser_only`, `excerpt`, `size` (`large|medium|small`), `background[]` („Was bisher geschah“),
+  `image` (nur Aufmacher und große Meldungen): `id` (→ `GET /api/v1/images/{id}`; das Beispiel nutzt `file`),
+  `width`, `height` (Pixel), `alt` (Pflicht für PDF/UA), `credit`. Der Renderer reicht die JPEGs als
+  `sys.inputs.images` an Typst; im Stil Retro werden sie schwarzweiß gedruckt.
 - `briefs[]`, `calendar[]`, `family[]`, `almanac{}`
 
 ## Gestaltung

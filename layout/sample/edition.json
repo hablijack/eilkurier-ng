@@ -49,7 +49,14 @@
       "Seit Dezember 2025 gesperrt, nachdem Gutachter Risse im Tragwerk fanden.",
       "Im März wurde die Freigabe von Juli auf Dezember verschoben – Lieferengpässe beim Spezialbeton.",
       "Im September begann die Abdichtung; die Stadt nannte damals den 5. Dezember als Termin."
-    ]
+    ],
+    "image": {
+      "file": "/layout/sample/bruecke.svg",
+      "width": 1600,
+      "height": 900,
+      "alt": "Zeichnung: Die Steinbrücke über den Mühlbach, auf der Fahrbahn steht noch eine Absperrung.",
+      "credit": "Eilkurier (Beispielbild)"
+    }
   },
   "stories": [
     {
@@ -63,7 +70,14 @@
       "body": [
         "Sprachmodelle mit nur wenigen Milliarden Parametern laufen inzwischen flüssig auf Einplatinenrechnern mit integrierter Grafikeinheit. Für Zusammenfassungen und das Umformulieren kurzer Texte reiche die Qualität vielen Anwendern bereits aus, heißt es in einem aktuellen Vergleich.",
         "Schwächen zeigen die kleinen Modelle weiterhin bei längeren Zusammenhängen und bei Fakten, die nicht im vorgegebenen Text stehen. Die Autoren empfehlen daher, den Modellen möglichst eng umrissene Aufgaben zu geben."
-      ]
+      ],
+      "image": {
+        "file": "/layout/sample/sprachmodell.svg",
+        "width": 1200,
+        "height": 800,
+        "alt": "Zeichnung: Ein kleiner Einplatinenrechner mit Sprechblase.",
+        "credit": "Eilkurier (Beispielbild)"
+      }
     },
     {
       "section": "Selbermachen",

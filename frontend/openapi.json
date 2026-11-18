@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Eilkurier API",
-    "version": "0.1.0"
+    "version": "0.2.1"
   },
   "paths": {
     "/health/live": {
@@ -875,6 +875,44 @@
         }
       }
     },
+    "/api/v1/images/{image_id}": {
+      "get": {
+        "tags": [
+          "editions"
+        ],
+        "summary": "Picture",
+        "operationId": "picture_api_v1_images__image_id__get",
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Image Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A picture of an edition (JPEG)",
+            "content": {
+              "image/jpeg": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/readers/{reader_id}/editions": {
       "post": {
         "tags": [
@@ -1114,6 +1152,17 @@
             "type": "boolean",
             "title": "Recommended",
             "default": false
+          },
+          "images": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "feed",
+              "page",
+              "none"
+            ],
+            "title": "Images",
+            "default": "auto"
           },
           "source_id": {
             "anyOf": [
@@ -1805,6 +1854,18 @@
             "title": "Fetch Fulltext",
             "default": true
           },
+          "image_mode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "feed",
+              "page",
+              "none"
+            ],
+            "title": "Image Mode",
+            "description": "Where pictures come from: auto = article page, else feed; feed; page (og:image); none",
+            "default": "auto"
+          },
           "enabled": {
             "type": "boolean",
             "title": "Enabled",
@@ -1843,6 +1904,10 @@
           "fetch_fulltext": {
             "type": "boolean",
             "title": "Fetch Fulltext"
+          },
+          "image_mode": {
+            "type": "string",
+            "title": "Image Mode"
           },
           "enabled": {
             "type": "boolean",
@@ -1885,6 +1950,7 @@
           "url",
           "category",
           "fetch_fulltext",
+          "image_mode",
           "enabled",
           "last_fetched_at",
           "last_error"

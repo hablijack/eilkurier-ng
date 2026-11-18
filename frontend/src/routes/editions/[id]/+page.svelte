@@ -20,8 +20,25 @@
 	});
 </script>
 
+{#snippet picture(item: StoryItem)}
+	{#if item.image?.id}
+		<figure class="picture">
+			<img
+				src="/api/v1/images/{item.image.id}"
+				alt={item.image.alt}
+				width={item.image.width}
+				height={item.image.height}
+				loading="lazy"
+				onerror={(e) => ((e.currentTarget.closest('figure') as HTMLElement).hidden = true)}
+			/>
+			{#if item.image.credit}<figcaption>{t('edition.picture')} {item.image.credit}</figcaption>{/if}
+		</figure>
+	{/if}
+{/snippet}
+
 {#snippet story(item: StoryItem, level: 'h2' | 'h3')}
 	<article class="story {item.size ?? 'medium'} topic-{color(item.section)}">
+		{#if item.size !== 'lead'}{@render picture(item)}{/if}
 		<header>
 			{#if item.section}<p class="kicker">{item.section}</p>{/if}
 			<svelte:element this={level} class="headline">{item.headline}</svelte:element>
@@ -29,6 +46,7 @@
 			<p class="meta">
 				{[item.source, item.published, item.excerpt ? t('edition.excerpt') : null].filter(Boolean).join(' · ')}
 			</p>
+			{#if item.size === 'lead'}{@render picture(item)}{/if}
 		</header>
 		{#each item.body as paragraph, i (i)}<p class:first={i === 0}>{paragraph}</p>{/each}
 		{#if item.background?.length}
@@ -245,6 +263,25 @@
 	}
 	.lead .story {
 		border-bottom: 0;
+	}
+	.picture {
+		margin: 0 0 0.75rem;
+		break-inside: avoid-column;
+	}
+	.picture img {
+		display: block;
+		width: 100%;
+		height: auto;
+		max-height: 28rem;
+		object-fit: cover;
+		background: var(--band);
+	}
+	.picture figcaption {
+		font-family: var(--font-ui);
+		font-size: 0.78rem;
+		color: var(--muted);
+		text-align: right;
+		margin-top: 0.25rem;
 	}
 	.background {
 		background: var(--band);

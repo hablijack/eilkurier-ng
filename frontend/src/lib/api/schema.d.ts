@@ -298,6 +298,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/images/{image_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Picture */
+        get: operations["picture_api_v1_images__image_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/readers/{reader_id}/editions": {
         parameters: {
             query?: never;
@@ -406,6 +423,12 @@ export interface components {
              * @default false
              */
             recommended?: boolean;
+            /**
+             * Images
+             * @default auto
+             * @enum {string}
+             */
+            images?: "auto" | "feed" | "page" | "none";
             /**
              * Source Id
              * @description Set when the entry has been added as a source
@@ -710,6 +733,13 @@ export interface components {
              */
             fetch_fulltext?: boolean;
             /**
+             * Image Mode
+             * @description Where pictures come from: auto = article page, else feed; feed; page (og:image); none
+             * @default auto
+             * @enum {string}
+             */
+            image_mode?: "auto" | "feed" | "page" | "none";
+            /**
              * Enabled
              * @default true
              */
@@ -729,6 +759,8 @@ export interface components {
             category: string;
             /** Fetch Fulltext */
             fetch_fulltext: boolean;
+            /** Image Mode */
+            image_mode: string;
             /** Enabled */
             enabled: boolean;
             /** Last Fetched At */
@@ -1427,6 +1459,37 @@ export interface operations {
                 };
                 content: {
                     "application/pdf": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    picture_api_v1_images__image_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                image_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A picture of an edition (JPEG) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": unknown;
                 };
             };
             /** @description Validation Error */

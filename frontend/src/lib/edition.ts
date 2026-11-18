@@ -1,6 +1,16 @@
 // The edition document: the contract between the editorial desk and typesetting
 // (reference: layout/sample/edition.json in the repository).
 
+export interface Picture {
+	/** Stored picture, served at /api/v1/images/{id} (the sample edition uses `file` instead). */
+	id?: number;
+	file?: string;
+	width: number;
+	height: number;
+	alt: string;
+	credit?: string | null;
+}
+
 export interface StoryItem {
 	section?: string;
 	size?: 'lead' | 'large' | 'medium' | 'small';
@@ -13,6 +23,8 @@ export interface StoryItem {
 	teaser_only?: boolean;
 	excerpt?: boolean;
 	background?: string[];
+	/** Only on the lead and large stories. */
+	image?: Picture;
 }
 
 export interface EditionPayload {

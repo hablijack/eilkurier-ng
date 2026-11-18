@@ -8,6 +8,8 @@ from typing import Any
 
 import typst
 
+from eilkurier.images import grayscale
+
 Edition = dict[str, Any]
 
 
@@ -27,18 +29,29 @@ class EditionRenderer:
         self.main = resource_root / "layout" / "main.typ"
         self.fonts = resource_root / "assets" / "fonts"
 
-    def render_pdf(self, edition: Edition) -> bytes:
-        pdf, warnings = self.render_with_warnings(edition)
+    def render_pdf(self, edition: Edition, pictures: dict[int, bytes] | None = None) -> bytes:
+        pdf, warnings = self.render_with_warnings(edition, pictures)
         for warning in warnings:
             log.warning("typesetting: %s", warning)
         return pdf
 
-    def render_with_warnings(self, edition: Edition) -> tuple[bytes, list[str]]:
+    def render_with_warnings(
+        self, edition: Edition, pictures: dict[int, bytes] | None = None
+    ) -> tuple[bytes, list[str]]:
+        """`pictures`: JPEG bytes by image id, for the `image.id` references in the edition."""
+        inputs = {"edition": json.dumps(edition, ensure_ascii=False)}
+        if pictures:
+            retro = edition.get("style", {}).get("theme") == Theme.KLASSISCH
+            # Typst inputs are strings: bytes travel as JSON arrays (fast enough for a handful of JPEGs).
+            inputs["images"] = json.dumps(
+                {str(i): list(grayscale(data) if retro else data) for i, data in pictures.items()},
+                separators=(",", ":"),
+            )
         pdf, warnings = typst.compile_with_warnings(
             str(self.main),
             root=str(self.root),
             font_paths=[str(self.fonts)],
-            sys_inputs={"edition": json.dumps(edition, ensure_ascii=False)},
+            sys_inputs=inputs,
             format="pdf",
             # Accessible, tagged PDF. Typst fails the build on violations (e.g. images without alt text).
             pdf_standards="ua-1",

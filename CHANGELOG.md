@@ -9,6 +9,19 @@ Ein Release entsteht mit `scripts/release.py X.Y.Z` (siehe README, Abschnitt „
 
 ## [Unreleased]
 
+### Neu
+
+- Bilder in der Zeitung: Aufmacher und große Meldungen bekommen ein Bild mit Bildnachweis, im Druck und in der
+  Webansicht (im Stil Retro schwarzweiß). Woher die Bilder kommen, ist pro Quelle einstellbar: automatisch,
+  aus dem Feed, von der Artikelseite oder keine (Seite „Quellen“). Für die Katalog-Zeitungen ist der Wert an
+  den echten Seiten gemessen. Geladen werden nur Bilder von Artikeln, die wahrscheinlich gedruckt werden
+  (Migration `0004`).
+
+### Behoben
+
+- Satz: Passte die erste Meldung nicht mehr unter den Aufmacher, rutschten alle Spalten auf Seite 2 und Seite 1
+  blieb halb leer. Außerdem konnte am Ende eine leere Seite entstehen.
+
 ## [0.2.1] – 2026-11-18
 
 ### Behoben

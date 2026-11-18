@@ -11,7 +11,7 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from eilkurier import collect, deliver, reporter
+from eilkurier import collect, deliver, images, reporter
 from eilkurier.db import Edition, Reader, Status, kv_get, kv_set, session_scope
 from eilkurier.edition import build_edition
 from eilkurier.http import HostThrottle, make_client
@@ -118,6 +118,9 @@ class Worker:
     def fulltexts(self, session: Session) -> int:
         return collect.fetch_fulltexts(session, self.http, self.settings, self.throttle)
 
+    def pictures(self, session: Session) -> int:
+        return images.fetch(session, self.http, self.settings, self.throttle, datetime.now(UTC))
+
     def reporter(self, session: Session) -> int:
         if self.llm is None:
             return 0
@@ -127,6 +130,7 @@ class Worker:
         today = date.today().isoformat()
         if kv_get(session, "housekeeping") != today:
             collect.purge_old(session, self.settings, datetime.now(UTC))
+            images.purge_old(session, self.settings, datetime.now(UTC))
             kv_set(session, "housekeeping", today)
 
     def tick(self) -> None:
@@ -135,6 +139,7 @@ class Worker:
         self._step("telegram", self.telegram)
         self._step("collect", self.collect)
         self._step("fulltext", self.fulltexts)
+        self._step("pictures", self.pictures)
         self._step("reporter", self.reporter)
         self._step("housekeeping", self.housekeeping)
 

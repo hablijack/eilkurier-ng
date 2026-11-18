@@ -8,7 +8,17 @@
 	let catalog = $state<Catalog>({ topics: [], sources: [] });
 	let error = $state('');
 	let message = $state('');
-	let form = $state<SourceIn>({ kind: 'rss', name: '', url: '', category: 'Allgemein', fetch_fulltext: true, enabled: true });
+	let form = $state<SourceIn>({
+		kind: 'rss',
+		name: '',
+		url: '',
+		category: 'Allgemein',
+		fetch_fulltext: true,
+		image_mode: 'auto',
+		enabled: true
+	});
+	const imageModes = ['auto', 'page', 'feed', 'none'] as const;
+	type ImageMode = (typeof imageModes)[number];
 
 	const categories = $derived([...new Set(sources.map((s) => s.category))]);
 	const catalogCategories = $derived(catalog.topics.map((c) => c.category));
@@ -39,14 +49,19 @@
 		form = { ...form, name: '', url: '' };
 	}
 
-	async function toggle(source: Source) {
-		const { id, kind, name, url, category, fetch_fulltext, enabled } = source;
-		await unwrap(
-			api.PUT('/api/v1/sources/{source_id}', {
-				params: { path: { source_id: id } },
-				body: { kind: kind as 'rss' | 'ics', name, url, category, fetch_fulltext, enabled: !enabled }
-			})
-		);
+	async function update(source: Source, patch: Partial<SourceIn>) {
+		const { id, kind, name, url, category, fetch_fulltext, image_mode, enabled } = source;
+		const body: SourceIn = {
+			kind: kind as 'rss' | 'ics',
+			name,
+			url,
+			category,
+			fetch_fulltext,
+			image_mode: image_mode as ImageMode,
+			enabled,
+			...patch
+		};
+		await unwrap(api.PUT('/api/v1/sources/{source_id}', { params: { path: { source_id: id } }, body }));
 		await load();
 	}
 
@@ -85,8 +100,22 @@
 							</span>
 							{#if source.last_error}<br /><span class="badge danger">{source.last_error}</span>{/if}
 						</div>
+						{#if source.kind === 'rss'}
+							<div class="field image-mode">
+								<label for="img-{source.id}">{t('sourcesPage.images')}</label>
+								<select
+									id="img-{source.id}"
+									value={source.image_mode}
+									onchange={(e) => update(source, { image_mode: e.currentTarget.value as ImageMode })}
+								>
+									{#each imageModes as mode (mode)}
+										<option value={mode}>{t(`sourcesPage.images.${mode}`)}</option>
+									{/each}
+								</select>
+							</div>
+						{/if}
 						<label class="check">
-							<input type="checkbox" checked={source.enabled} onchange={() => toggle(source)} />
+							<input type="checkbox" checked={source.enabled} onchange={() => update(source, { enabled: !source.enabled })} />
 							{t('sourcesPage.enabled')}
 						</label>
 						<button class="btn danger small" type="button" onclick={() => remove(source)}
@@ -126,6 +155,14 @@
 				</select>
 			</div>
 			{#if form.kind === 'rss'}
+				<div class="field">
+					<label for="s-images">{t('sourcesPage.images')}</label>
+					<select id="s-images" bind:value={form.image_mode}>
+						{#each imageModes as mode (mode)}
+							<option value={mode}>{t(`sourcesPage.images.${mode}`)}</option>
+						{/each}
+					</select>
+				</div>
 				<label class="check"><input type="checkbox" bind:checked={form.fetch_fulltext} />{t('sourcesPage.fulltext')}</label>
 			{/if}
 		</div>
@@ -148,7 +185,16 @@
 								<button
 									class="btn secondary small"
 									type="button"
-									onclick={() => add({ name: entry.name, url: entry.url, category: entry.category, kind: 'rss', fetch_fulltext: true, enabled: true })}
+									onclick={() =>
+										add({
+											name: entry.name,
+											url: entry.url,
+											category: entry.category,
+											kind: 'rss',
+											fetch_fulltext: true,
+											image_mode: entry.images,
+											enabled: true
+										})}
 									>{t('common.add')}<span class="visually-hidden">: {entry.name}</span></button
 								>
 							{/if}

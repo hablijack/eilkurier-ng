@@ -18,6 +18,7 @@ from eilkurier.catalog import load_catalog, source_fields
 from eilkurier.db import (
     Article,
     Edition,
+    Image,
     Interest,
     Letter,
     Reader,
@@ -362,6 +363,22 @@ def edition_pdf(edition_id: int, session: SessionDep) -> Response:
         edition.pdf,
         media_type="application/pdf",
         headers={"Content-Disposition": f'inline; filename="eilkurier-{edition.issue_date}.pdf"'},
+    )
+
+
+@api.get(
+    "/images/{image_id}",
+    tags=["editions"],
+    response_class=Response,
+    responses={200: {"content": {"image/jpeg": {}}, "description": "A picture of an edition (JPEG)"}},
+)
+def picture(image_id: int, session: SessionDep) -> Response:
+    data = session.scalar(select(Image.data).where(Image.id == image_id))
+    if data is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "picture not found")
+    # A picture never changes under its id.
+    return Response(
+        data, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=31536000, immutable"}
     )
 
 

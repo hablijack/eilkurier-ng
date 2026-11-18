@@ -32,9 +32,12 @@ After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd
 
 - **Processes:** one image; `app` (FastAPI REST API under `/api/v1` + the static SvelteKit build from
   `EILKURIER_WEB_ROOT`), `worker` (`eilkurier worker`: one loop, 30 s tick, isolated steps: editions/deliveries,
-  Telegram poll, collect, fulltext, reporter with a time budget, housekeeping), `migrate` (Alembic, one-shot).
+  Telegram poll, collect, fulltext, pictures, reporter with a time budget, housekeeping), `migrate` (Alembic,
+  one-shot).
   Compose: `docker-compose.yml`; profile `demo` adds the LLM simulator.
 - **Pipeline modules:** `collect.py` (RSS/ICS, trafilatura full text, consent/paywall/scrambled-text rejection)
+  → `images.py` (picture found per `Source.image_mode` in the feed or the page's og:image; downloaded and
+  downscaled only for articles a reader would likely get, stored in Postgres `images`)
   → `reporter.py` (enrich once per article, most-likely-printed first via `work_order`, one attempt per pass;
   story assignment: embedding/topic candidates, LLM picks one or 0)
   → `edition.py` (per-reader selection without LLM, compose edition JSON) → `render.py` → `deliver.py`
@@ -78,6 +81,12 @@ After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd
   in the next layout pass. It uses fixed labels, so use it once per document. A long-edition test asserts the
   layout converges without Typst warnings (the renderer logs warnings via `render_with_warnings`).
 - Section titles and story heads are `sticky` so they never end a column alone.
+- If the first sticky chain of a column flow does not fit the space left on the page, Typst moves the **whole**
+  flow to the next page. So `ausgabe` measures the room below the lead (at the `<flow-start>` marker, a
+  zero-height block, since a bare marker travels with the flow): the lead picture spans the story only if a strip
+  stays free, and picture-less stories open the columns when a picture head won't fit. `balanced-flow` also
+  shrinks once if its block spills onto an empty page.
+- Pictures arrive as `sys.inputs.images` (`{"<id>": [bytes]}`); the sample edition uses SVG files instead.
 - `droplet`'s drop cap block is unbreakable, so only the first paragraph goes into `dropcap` and the rest
   flows normally. Story headline, deck and source line are `sticky` blocks so they stay with the text.
 - Text colours must keep ≥ 4.5:1 contrast against the paper tint `#f9f7f1`.

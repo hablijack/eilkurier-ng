@@ -21,10 +21,11 @@ def rss(items: list[dict], title: str = "Testfeed") -> str:
         entries.append(
             f"<item><title>{item['title']}</title><link>{item['link']}</link><guid>{item['link']}</guid>"
             f"<description>{item.get('teaser', 'Anreißer')}</description>"
-            f"<pubDate>{published}</pubDate></item>"
+            f"<pubDate>{published}</pubDate>{item.get('extra', '')}</item>"
         )
     return (
-        f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>{title}</title>'
+        f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">'
+        f"<channel><title>{title}</title>"
         f"<link>https://example.org</link><description>t</description>{''.join(entries)}</channel></rss>"
     )
 
@@ -37,10 +38,10 @@ EXTRA = (
 )
 
 
-def article_page(title: str, paragraphs: int = 4) -> str:
+def article_page(title: str, paragraphs: int = 4, head: str = "") -> str:
     body = "".join(f"<p>{EXTRA[i % len(EXTRA)]} {PARAGRAPH if i == 0 else ''}</p>" for i in range(paragraphs))
     return (
-        f"<html><head><title>{title}</title></head><body><nav>Menü Start Impressum</nav>"
+        f"<html><head><title>{title}</title>{head}</head><body><nav>Menü Start Impressum</nav>"
         f"<article><h1>{title}</h1>{body}</article><footer>© Testverlag</footer></body></html>"
     )
 

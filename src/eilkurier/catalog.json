@@ -42,61 +42,70 @@
    "url": "https://rss.golem.de/rss.php?feed=ATOM2.0",
    "category": "IT & Technik",
    "description": "IT-Nachrichten für Profis: Computer, Software, Netzpolitik",
-   "recommended": true
+   "recommended": true,
+   "images": "feed"
   },
   {
    "name": "heise online News",
    "url": "https://www.heise.de/rss/heise-atom.xml",
    "category": "IT & Technik",
    "description": "Deutschlands bekanntester Technik-Nachrichtendienst",
-   "recommended": true
+   "recommended": true,
+   "images": "page"
   },
   {
    "name": "OMG! Ubuntu!",
    "url": "https://feeds.feedburner.com/d0od?format=xml",
    "category": "IT & Technik",
    "description": "Neuigkeiten rund um Linux und Ubuntu",
-   "language": "en"
+   "language": "en",
+   "images": "page"
   },
   {
    "name": "Winfuture",
    "url": "https://static.winfuture.de/feeds/WinFuture-News-rss2.0.xml",
    "category": "IT & Technik",
-   "description": "Windows, Smartphones und Technik-Neuheiten"
+   "description": "Windows, Smartphones und Technik-Neuheiten",
+   "images": "auto"
   },
   {
    "name": "t3n digital pioneers",
    "url": "https://t3n.de/rss.xml",
    "category": "IT & Technik",
-   "description": "Digitale Wirtschaft, Start-ups und Online-Trends"
+   "description": "Digitale Wirtschaft, Start-ups und Online-Trends",
+   "images": "auto"
   },
   {
    "name": "Engadget",
    "url": "https://www.engadget.com/rss.xml",
    "category": "IT & Technik",
    "description": "Gadgets, Spielekonsolen und Unterhaltungselektronik",
-   "language": "en"
+   "language": "en",
+   "images": "auto"
   },
   {
    "name": "Adafruit Blog",
    "url": "https://blog.adafruit.com/feed/",
    "category": "IT & Technik",
    "description": "Elektronik, offene Hardware und Basteleien",
-   "language": "en"
+   "language": "en",
+   "images": "feed"
   },
   {
    "name": "Lifehacker",
    "url": "https://lifehacker.com/feed/rss",
    "category": "Selbermachen",
    "description": "Alltagstipps und Tricks für Haushalt und Technik",
-   "language": "en"
+   "language": "en",
+   "images": "auto"
   },
   {
    "name": "Heise Make",
    "url": "https://www.heise.de/make/feed.xml",
    "category": "Selbermachen",
    "description": "Selbstgebaute Elektronik- und Werkstattprojekte",
-   "recommended": true
+   "recommended": true,
+   "images": "page"
   },
   {
    "name": "Hackaday",
@@ -104,326 +113,374 @@
    "category": "Selbermachen",
    "description": "Jeden Tag neue Bastelprojekte aus aller Welt",
    "language": "en",
-   "recommended": true
+   "recommended": true,
+   "images": "auto"
   },
   {
    "name": "Adafruit Learning",
    "url": "https://learn.adafruit.com/feed",
    "category": "Selbermachen",
    "description": "Schritt-für-Schritt-Bauanleitungen für Elektronik",
-   "language": "en"
+   "language": "en",
+   "images": "page"
   },
   {
    "name": "GITARRE & BASS",
    "url": "https://www.gitarrebass.de/feed/",
    "category": "Musik",
    "description": "Das Fachmagazin für Gitarristen und Bassisten",
-   "recommended": true
+   "recommended": true,
+   "images": "auto"
   },
   {
    "name": "Gearnews",
    "url": "https://www.gearnews.de/bereich/gitarre/feed/",
    "category": "Musik",
    "description": "Neue Gitarren, Verstärker und Effektgeräte",
-   "recommended": true
+   "recommended": true,
+   "images": "auto"
   },
   {
    "name": "Digital Present",
    "url": "https://digitalpresent.tagesspiegel.de/feed.xml",
    "category": "Nachrichten",
-   "description": "Tagesspiegel: Digitalisierung in Politik und Gesellschaft"
+   "description": "Tagesspiegel: Digitalisierung in Politik und Gesellschaft",
+   "images": "page"
   },
   {
    "name": "ZEIT ONLINE",
    "url": "https://newsfeed.zeit.de/index",
    "category": "Nachrichten",
-   "description": "Die Zeit: Politik, Gesellschaft und Kultur"
+   "description": "Die Zeit: Politik, Gesellschaft und Kultur",
+   "images": "feed"
   },
   {
    "name": "SPIEGEL ONLINE",
    "url": "https://www.spiegel.de/index.rss",
    "category": "Nachrichten",
-   "description": "Der Spiegel: aktuelle Schlagzeilen"
+   "description": "Der Spiegel: aktuelle Schlagzeilen",
+   "images": "page"
   },
   {
    "name": "taz.de",
    "url": "https://taz.de/!p4608;rss/",
    "category": "Nachrichten",
-   "description": "Die tageszeitung aus Berlin"
+   "description": "Die tageszeitung aus Berlin",
+   "images": "auto"
   },
   {
    "name": "Frankfurter Allgemeine Zeitung",
    "url": "https://www.faz.net/rss/aktuell/",
    "category": "Nachrichten",
-   "description": "FAZ: Politik, Wirtschaft und Feuilleton"
+   "description": "FAZ: Politik, Wirtschaft und Feuilleton",
+   "images": "auto"
   },
   {
    "name": "Tagesschau",
    "url": "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml",
    "category": "Nachrichten",
    "description": "Die Nachrichten der ARD",
-   "recommended": true
+   "recommended": true,
+   "images": "auto"
   },
   {
    "name": "Sueddeutsche: Top-Themen",
    "url": "https://rss.sueddeutsche.de/rss/Topthemen",
    "category": "Nachrichten",
    "description": "Süddeutsche Zeitung: die wichtigsten Themen des Tages",
-   "recommended": true
+   "recommended": true,
+   "images": "feed"
   },
   {
    "name": "Sueddeutsche: Alle-Themen",
    "url": "https://rss.sueddeutsche.de/alles",
    "category": "Nachrichten",
-   "description": "Süddeutsche Zeitung: alle Meldungen"
+   "description": "Süddeutsche Zeitung: alle Meldungen",
+   "images": "feed"
   },
   {
    "name": "Sueddeutsche: Eilmeldungen",
    "url": "https://rss.sueddeutsche.de/rss/Eilmeldungen",
    "category": "Nachrichten",
-   "description": "Süddeutsche Zeitung: nur Eilmeldungen"
+   "description": "Süddeutsche Zeitung: nur Eilmeldungen",
+   "images": "none"
   },
   {
    "name": "Münchner Merkur",
    "url": "https://www.merkur.de/rssfeed.rdf",
    "category": "Nachrichten",
-   "description": "Nachrichten aus München und Bayern"
+   "description": "Nachrichten aus München und Bayern",
+   "images": "auto"
   },
   {
    "name": "Welt: Top-News",
    "url": "https://www.welt.de/feeds/topnews.rss",
    "category": "Nachrichten",
-   "description": "Die Welt: die wichtigsten Meldungen"
+   "description": "Die Welt: die wichtigsten Meldungen",
+   "images": "auto"
   },
   {
    "name": "Welt: Alle Themen",
    "url": "https://www.welt.de/feeds/latest.rss",
    "category": "Nachrichten",
-   "description": "Die Welt: alle Meldungen"
+   "description": "Die Welt: alle Meldungen",
+   "images": "auto"
   },
   {
    "name": "Onetz Amberg",
    "url": "https://www.onetz.de/themen/Region%20Amberg/index.rss",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Amberg"
+   "description": "Onetz: Lokalnachrichten aus Amberg",
+   "images": "auto"
   },
   {
    "name": "Onetz Cham",
    "url": "https://www.onetz.de/themen/Region%20Cham/index.rss",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Cham"
+   "description": "Onetz: Lokalnachrichten aus Cham",
+   "images": "auto"
   },
   {
    "name": "Onetz Eschenbach",
    "url": "https://www.onetz.de/themen/Region%20Eschenbach/index.rss",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Eschenbach"
+   "description": "Onetz: Lokalnachrichten aus Eschenbach",
+   "images": "auto"
   },
   {
    "name": "Onetz Kemnath",
    "url": "https://www.onetz.de/themen/Region%20Kemnath/index.rss",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Kemnath"
+   "description": "Onetz: Lokalnachrichten aus Kemnath",
+   "images": "auto"
   },
   {
    "name": "Onetz Nabburg",
    "url": "https://www.onetz.de/themen/Region%20Nabburg/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Nabburg"
+   "description": "Onetz: Lokalnachrichten aus Nabburg",
+   "images": "auto"
   },
   {
    "name": "Onetz Neumarkt",
    "url": "https://www.onetz.de/themen/Region%20Neumarkt/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Neumarkt"
+   "description": "Onetz: Lokalnachrichten aus Neumarkt",
+   "images": "auto"
   },
   {
    "name": "Onetz Oberviechtach",
    "url": "https://www.onetz.de/themen/Region%20Oberviechtach-Neunburg/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Oberviechtach"
+   "description": "Onetz: Lokalnachrichten aus Oberviechtach",
+   "images": "auto"
   },
   {
    "name": "Onetz Regensburg",
    "url": "https://www.onetz.de/themen/Region%20Regensburg/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Regensburg"
+   "description": "Onetz: Lokalnachrichten aus Regensburg",
+   "images": "auto"
   },
   {
    "name": "Onetz Schwandorf",
    "url": "https://www.onetz.de/themen/Region%20Schwandorf/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Schwandorf"
+   "description": "Onetz: Lokalnachrichten aus Schwandorf",
+   "images": "auto"
   },
   {
    "name": "Onetz Sulzbach-Rosenberg",
    "url": "https://www.onetz.de/themen/Region%20Sulzbach-Rosenberg/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Sulzbach-Rosenberg"
+   "description": "Onetz: Lokalnachrichten aus Sulzbach-Rosenberg",
+   "images": "auto"
   },
   {
    "name": "Onetz Tirschenreuth",
    "url": "https://www.onetz.de/themen/Region%20Tirschenreuth/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Tirschenreuth"
+   "description": "Onetz: Lokalnachrichten aus Tirschenreuth",
+   "images": "auto"
   },
   {
    "name": "Onetz Vohenstrauß",
    "url": "https://www.onetz.de/themen/Region%20Vohenstrau%C3%9F/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Vohenstrauß"
+   "description": "Onetz: Lokalnachrichten aus Vohenstrauß",
+   "images": "auto"
   },
   {
    "name": "Onetz Weiden",
    "url": "https://www.onetz.de/themen/Region%20Weiden-Neustadt/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Lokalnachrichten aus Weiden"
+   "description": "Onetz: Lokalnachrichten aus Weiden",
+   "images": "auto"
   },
   {
    "name": "Stadt Weiden",
    "url": "https://www.weiden.de/index.php?id=243&type=9818",
    "category": "Region",
    "group": "Städte",
-   "description": "Amtliche Mitteilungen der Stadt Weiden"
+   "description": "Amtliche Mitteilungen der Stadt Weiden",
+   "images": "auto"
   },
   {
    "name": "Onetz Bayern",
    "url": "https://www.onetz.de/themen/bayern/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Nachrichten aus ganz Bayern"
+   "description": "Onetz: Nachrichten aus ganz Bayern",
+   "images": "auto"
   },
   {
    "name": "Onetz Kultur",
    "url": "https://www.onetz.de/themen/kultur/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Kultur in der Oberpfalz"
+   "description": "Onetz: Kultur in der Oberpfalz",
+   "images": "auto"
   },
   {
    "name": "Onetz Polizeibericht",
    "url": "https://www.onetz.de/themen/polizei/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Polizeiberichte aus der Oberpfalz"
+   "description": "Onetz: Polizeiberichte aus der Oberpfalz",
+   "images": "auto"
   },
   {
    "name": "Onetz Oton",
    "url": "https://www.onetz.de/themen/oton/rss.xml",
    "category": "Region",
    "group": "Oberpfalz (Onetz)",
-   "description": "Onetz: Meinungen und Stimmen aus der Region"
+   "description": "Onetz: Meinungen und Stimmen aus der Region",
+   "images": "auto"
   },
   {
    "name": "Stadt Waldershof",
    "url": "https://www.waldershof.de/feed/",
    "category": "Region",
    "group": "Städte",
-   "description": "Amtliche Mitteilungen der Stadt Waldershof"
+   "description": "Amtliche Mitteilungen der Stadt Waldershof",
+   "images": "auto"
   },
   {
    "name": "Frankenpost: Topmeldungen",
    "url": "https://www.frankenpost.de/topmeldung.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: die wichtigsten Meldungen"
+   "description": "Frankenpost: die wichtigsten Meldungen",
+   "images": "auto"
   },
   {
    "name": "Frankenpost: Auf einen Blick",
    "url": "https://www.frankenpost.de/auf-einen-blick.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: der Tag auf einen Blick"
+   "description": "Frankenpost: der Tag auf einen Blick",
+   "images": "auto"
   },
   {
    "name": "Frankenpost: Regional",
    "url": "https://www.frankenpost.de/region.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: alle Regionalnachrichten"
+   "description": "Frankenpost: alle Regionalnachrichten",
+   "images": "auto"
   },
   {
    "name": "Frankenpost Hof",
    "url": "https://www.frankenpost.de/region/hof.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: Lokalnachrichten aus Hof"
+   "description": "Frankenpost: Lokalnachrichten aus Hof",
+   "images": "auto"
   },
   {
    "name": "Frankenpost Rehau",
    "url": "https://www.frankenpost.de/region/rehau.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: Lokalnachrichten aus Rehau"
+   "description": "Frankenpost: Lokalnachrichten aus Rehau",
+   "images": "auto"
   },
   {
    "name": "Frankenpost Naila",
    "url": "https://www.frankenpost.de/region/naila.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: Lokalnachrichten aus Naila"
+   "description": "Frankenpost: Lokalnachrichten aus Naila",
+   "images": "auto"
   },
   {
    "name": "Frankenpost Münchberg",
    "url": "https://www.frankenpost.de/region/muenchberg.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: Lokalnachrichten aus Münchberg"
+   "description": "Frankenpost: Lokalnachrichten aus Münchberg",
+   "images": "auto"
   },
   {
    "name": "Frankenpost Fichtelgebirge",
    "url": "https://www.frankenpost.de/region/fichtelgebirge.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: Lokalnachrichten aus Fichtelgebirge"
+   "description": "Frankenpost: Lokalnachrichten aus Fichtelgebirge",
+   "images": "auto"
   },
   {
    "name": "Frankenpost Wunsiedel",
    "url": "https://www.frankenpost.de/region/wunsiedel.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: Lokalnachrichten aus Wunsiedel"
+   "description": "Frankenpost: Lokalnachrichten aus Wunsiedel",
+   "images": "auto"
   },
   {
    "name": "Frankenpost Marktredwitz",
    "url": "https://www.frankenpost.de/region/marktredwitz.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: Lokalnachrichten aus Marktredwitz"
+   "description": "Frankenpost: Lokalnachrichten aus Marktredwitz",
+   "images": "auto"
   },
   {
    "name": "Frankenpost Selb",
    "url": "https://www.frankenpost.de/region/selb.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: Lokalnachrichten aus Selb"
+   "description": "Frankenpost: Lokalnachrichten aus Selb",
+   "images": "auto"
   },
   {
    "name": "Frankenpost Arzberg",
    "url": "https://www.frankenpost.de/region/arzberg.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: Lokalnachrichten aus Arzberg"
+   "description": "Frankenpost: Lokalnachrichten aus Arzberg",
+   "images": "auto"
   },
   {
    "name": "Frankenpost Kulmbach",
    "url": "https://www.frankenpost.de/region/kulmbach.rss2.feed",
    "category": "Region",
    "group": "Oberfranken (Frankenpost)",
-   "description": "Frankenpost: Lokalnachrichten aus Kulmbach"
+   "description": "Frankenpost: Lokalnachrichten aus Kulmbach",
+   "images": "auto"
   }
  ]
 }

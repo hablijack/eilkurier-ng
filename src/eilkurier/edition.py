@@ -11,7 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from eilkurier import almanac
-from eilkurier.db import Article, CalendarEvent, Edition, Letter, Reader, ReaderSource, Status
+from eilkurier.db import Article, CalendarEvent, Edition, Image, Letter, Reader, ReaderSource, Status
 from eilkurier.render import EditionRenderer
 from eilkurier.reporter import _cosine
 from eilkurier.settings import Settings
@@ -24,6 +24,8 @@ MAX_PER_SOURCE = 3
 BRIEF_COUNT = 5
 BACKGROUND_EVENTS = 4
 TEXT_BUDGET = {"lead": 1200, "large": 700, "medium": 480, "small": 320}
+# Only these stories get a picture: the lead and the large ones (small pictures look like stamps).
+PICTURE_SIZES = ("lead", "large")
 # The reader's most important source gets this bonus, the least important none (linear in between).
 SOURCE_PRIORITY_BONUS = 1.5
 
@@ -39,6 +41,7 @@ _NAMES = {
         "since": "Seit 2018",
         "family": "Familie",
         "all_day": "ganztägig",
+        "picture_alt": "Bild zum Artikel „{headline}“",
     },
     "en": {
         "weekdays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
@@ -51,6 +54,7 @@ _NAMES = {
         "since": "Since 2018",
         "family": "Family",
         "all_day": "all day",
+        "picture_alt": "Picture for “{headline}”",
     },
 }  # fmt: skip
 
@@ -189,7 +193,23 @@ def _background(session: Session, article: Article, tz: ZoneInfo) -> list[str]:
     return events
 
 
-def story_item(session: Session, article: Article, size: str, tz: ZoneInfo) -> dict[str, Any]:
+def picture_item(article: Article, headline: str, lang: str) -> dict[str, Any] | None:
+    image = article.image if article.image_status == Status.DONE else None
+    if image is None:
+        return None
+    return {
+        "id": image.id,
+        "width": image.width,
+        "height": image.height,
+        # PDF/UA needs a text alternative; feeds rarely provide one.
+        "alt": article.image_alt or names(lang)["picture_alt"].format(headline=headline),
+        "credit": article.image_credit or article.source.name,
+    }
+
+
+def story_item(
+    session: Session, article: Article, size: str, tz: ZoneInfo, lang: str = "de"
+) -> dict[str, Any]:
     e = article.enrichment if article.enrichment_status == Status.DONE else None
     item: dict[str, Any] = {
         "section": article.source.category,
@@ -205,6 +225,8 @@ def story_item(session: Session, article: Article, size: str, tz: ZoneInfo) -> d
     }
     if background := _background(session, article, tz):
         item["background"] = background
+    if size in PICTURE_SIZES and (picture := picture_item(article, item["headline"], lang)):
+        item["image"] = picture
     return item
 
 
@@ -260,7 +282,7 @@ def compose(
     lead = next((s for s in main if s.article.fulltext_status == Status.DONE), main[0] if main else None)
     others = [s for s in main if s is not lead]
     sizes = ["large"] * 2 + ["medium"] * 3 + ["small"] * 100
-    stories = [story_item(session, s.article, sizes[i], tz) for i, s in enumerate(others)]
+    stories = [story_item(session, s.article, sizes[i], tz, lang) for i, s in enumerate(others)]
 
     previous = session.scalar(
         select(func.max(Edition.created_at)).where(
@@ -289,7 +311,7 @@ def compose(
         },
         "weather": almanac.weather(http, settings, issue_date, lang) if http else None,
         "sections": sections or [n["region"]],
-        "lead": story_item(session, lead.article, "lead", tz) if lead else None,
+        "lead": story_item(session, lead.article, "lead", tz, lang) if lead else None,
         "stories": stories,
         "briefs": [brief_item(s.article) for s in rest],
         "calendar": _calendar(session, reader, now, tz, lang),
@@ -302,6 +324,18 @@ def compose(
         },
     }
     return {k: v for k, v in edition.items() if v is not None}
+
+
+def picture_ids(payload: dict[str, Any]) -> list[int]:
+    items = [payload.get("lead") or {}, *payload.get("stories", [])]
+    return [item["image"]["id"] for item in items if "id" in item.get("image", {})]
+
+
+def load_pictures(session: Session, payload: dict[str, Any]) -> dict[int, bytes]:
+    ids = picture_ids(payload)
+    if not ids:
+        return {}
+    return {i: data for i, data in session.execute(select(Image.id, Image.data).where(Image.id.in_(ids)))}
 
 
 def build_edition(
@@ -322,7 +356,7 @@ def build_edition(
         session.add(edition)
     payload["edition"]["number"] = edition.number
     edition.payload = payload
-    edition.pdf = renderer.render_pdf(payload)
+    edition.pdf = renderer.render_pdf(payload, load_pictures(session, payload))
     edition.status = Status.DONE
     session.flush()
     return edition

@@ -19,6 +19,7 @@
     quiet-day: "Heute gibt es keine neuen Meldungen aus deinen Quellen.",
     to-original: "Zum Original",
     qr-alt: "QR-Code zum Originalartikel:",
+    photo: "Bild:",
   ),
   en: (
     edition-for: "Edition for",
@@ -38,6 +39,7 @@
     quiet-day: "No new stories from your sources today.",
     to-original: "Read the original",
     qr-alt: "QR code linking to the original article:",
+    photo: "Picture:",
   ),
 )
 

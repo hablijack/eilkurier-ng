@@ -75,6 +75,49 @@
 
 #let paragraphs(ps) = ps.map(p => [#p]).join(parbreak())
 
+// Pictures: the renderer passes their bytes as `sys.inputs.images` ({"<id>": [byte, ...]}, the only way to
+// hand binary data to Typst without files); the sample edition refers to files under layout/sample/.
+#let picture-data = {
+  let raw = sys.inputs.at("images", default: none)
+  if raw == none { (:) } else { json(bytes(raw)) }
+}
+
+#let picture-source(img) = if "file" in img { img.file } else {
+  let data = picture-data.at(str(img.at("id", default: "")), default: none)
+  if data == none { none } else { bytes(data) }
+}
+
+// From this pixel width a picture may span the whole lead story (otherwise it would print blurry).
+#let wide-picture(s) = {
+  let img = s.at("image", default: none)
+  img != none and img.width >= 1000
+}
+
+// A picture with its credit line. `min-ratio` crops tall pictures (centred) so they don't eat the page,
+// `max-height` caps very wide layouts.
+#let picture(t, s, l, min-ratio: 4 / 3, max-height: 9cm) = {
+  let img = s.at("image", default: none)
+  let src = if img == none { none } else { picture-source(img) }
+  if src != none {
+    let ratio = calc.max(img.width / img.height, min-ratio)
+    block(width: 100%, above: 0pt, below: 0.6em, sticky: true, layout(size => {
+      let height = calc.min(size.width / ratio, max-height)
+      stack(
+        spacing: 2.5pt,
+        image(src, width: size.width, height: height, fit: "cover", alt: img.alt),
+        if img.at("credit", default: none) != none {
+          align(right, text(
+            font: if t.modern { t.label-font } else { t.body-font },
+            size: t.body-size * 0.72,
+            fill: t.muted,
+            l.photo + " " + img.credit,
+          ))
+        },
+      )
+    }))
+  }
+}
+
 // Typst does not balance columns; measure the text in a single column and cap the height.
 #let balanced-columns(n, gutter, body) = if n <= 1 { body } else {
   layout(size => {
@@ -86,6 +129,7 @@
 
 // Horizontal page margin; shared with balanced-flow, which needs the text width.
 #let margin-x = 13mm
+#let margin-top = 13mm
 
 // Multi-page column flow whose LAST page is balanced (Typst fills columns one after another, which
 // leaves the last page with full left and empty right columns). A breakable block of total height
@@ -99,7 +143,8 @@
     let em = 1em.to-absolute()
     let col = (page.width - 2 * margin-x - gutter * (n - 1)) / n
     let natural = measure(block(width: col, body)).height
-    // State of the previous pass: (mode, extra), mode "balanced" | "grown" | "grown-more" | "plain".
+    // State of the previous pass: (mode, extra),
+    // mode "balanced" | "grown" | "grown-more" | "shrunk" | "plain".
     // Column breaks waste space (sticky heads move along, boxes don't split); budget for it per page.
     let pages = calc.ceil(natural / n / (page.height - 30mm)) + 1
     let initial = pages * 4 * em // tuned on real editions: settles in the first pass for all themes
@@ -117,6 +162,10 @@
         } else if mode == "grown" {
           ("grown-more", extra + (e.y - a.y) + 6 * em)
         } else { ("plain", extra) }
+      } else if e.page < a.page and mode != "shrunk" {
+        // The text ended a page earlier: the block only spills empty space onto a page of its own.
+        // Cut that part off (once; if the text then overflows, plain columns take over).
+        (mode, extra) = ("shrunk", extra - (a.y - margin-top) - em)
       }
     }
     [#metadata((mode, extra))<bflow-state>]
@@ -181,15 +230,20 @@
 // Stories
 // ---------------------------------------------------------------------------------------------
 
-#let story(t, s, l, level: 3) = block(width: 100%, breakable: true, below: 1.4em)[
-  // Headline, deck and source line are sticky blocks: they never end up alone at a column foot.
-  #kicker(t, s)
-  #{
+// Picture, headline, deck and source line are sticky blocks: they never end up alone at a column foot.
+#let story-head(t, s, l, level: 3) = {
+  picture(t, s, l)
+  kicker(t, s)
+  {
     set text(size: t.story-sizes.at(s.at("size", default: "medium")))
     heading(level: level, s.headline)
   }
-  #if s.at("subhead", default: none) != none { deck(t, s.subhead) }
-  #meta-line(t, s, l)
+  if s.at("subhead", default: none) != none { deck(t, s.subhead) }
+  meta-line(t, s, l)
+}
+
+#let story(t, s, l, level: 3) = block(width: 100%, breakable: true, below: 1.4em)[
+  #story-head(t, s, l, level: level)
   #body-with-dropcap(t, s.body, t.drop-lines)
   #background-box(t, s, l)
   #qr(t, s.at("url", default: none), l, size: 1.2cm)
@@ -197,27 +251,34 @@
   #separator(t)
 ]
 
-#let lead-story(t, s, l) = block(width: 100%, below: 1em)[
+// `wide`: span the picture across the story (see `ausgabe`, which checks that it leaves room below).
+#let lead-story(t, s, l, wide: false) = block(width: 100%, below: 1em)[
   #kicker(t, s)
   #{
     set text(size: t.lead-size)
     heading(level: 2, s.headline)
   }
   #if s.at("subhead", default: none) != none { deck(t, s.subhead) }
+  // Large pictures span the story; others go to the sidebar (or above the text) at column width.
   #if t.lead-sidebar [
     #grid(
       columns: (2.2fr, 1fr),
       gutter: 6mm,
       [
+        #if wide { picture(t, s, l, min-ratio: 16 / 9) }
         #meta-line(t, s, l)
         #balanced-columns(t.lead-columns, 5mm, body-with-dropcap(t, s.body, t.drop-lines + 1))
       ],
       [
+        #if not wide { picture(t, s, l) }
         #background-box(t, s, l)
         #qr(t, s.at("url", default: none), l)
       ],
     )
   ] else [
+    #if wide { picture(t, s, l, min-ratio: 16 / 9) } else {
+      block(width: 60%, picture(t, s, l))
+    }
     #meta-line(t, s, l)
     #balanced-columns(t.lead-columns, 7mm, body-with-dropcap(t, s.body, t.drop-lines + 1))
     #background-box(t, s, l)
@@ -409,7 +470,7 @@
   )
   set page(
     paper: style.at("paper", default: "a4"),
-    margin: (x: margin-x, top: 13mm, bottom: 17mm),
+    margin: (x: margin-x, top: margin-top, bottom: 17mm),
     // Paper tint looks lovely on screens and tablets; switch it off when printing on real paper.
     fill: if tint { t.paper } else { none },
     background: if not t.modern {
@@ -445,15 +506,55 @@
   masthead(t, ed, l)
 
   if ed.at("lead", default: none) != none {
-    lead-story(t, ed.lead, l)
+    // A full-width lead picture only when a strip for the columns stays free below the lead,
+    // otherwise the columns would start on page 2 (the sidebar has room to spare anyway).
+    context {
+      let wide = wide-picture(ed.lead)
+      if wide {
+        let height = measure(block(width: page.width - 2 * margin-x, lead-story(t, ed.lead, l, wide: true))).height
+        // e-paper heads are short (no drop caps), so a narrower strip still takes a story.
+        wide = page.height - 17mm - here().position().y - height >= if t.modern { 4.5cm } else { 8cm }
+      }
+      lead-story(t, ed.lead, l, wide: wide)
+    }
     if t.modern { line(length: 100%, stroke: 1pt + t.ink) } else { double-rule(t) }
     v(2mm)
   }
 
   // Without a lead story the stories move up one heading level (PDF/UA forbids skipping levels).
   let level = if ed.at("lead", default: none) == none { 2 } else { 3 }
+  let stories = ed.at("stories", default: ())
+  // Typst moves the whole column flow to the next page when its first sticky head (picture + headline)
+  // does not fit below the lead. Then a story without a picture opens the columns, like on a real page.
+  // The room is measured at a marker before the flow (inside it, the flow's own jump would hide it).
+  // A zero-height block: a bare marker would travel along with the flow when that moves.
+  block(height: 0pt, above: 0pt, below: 0pt)[#metadata(none)<flow-start>]
+  let stories = context {
+    let col = (page.width - 2 * margin-x - 5mm * (t.columns - 1)) / t.columns
+    let start = query(<flow-start>).first().location().position()
+    let room = page.height - 17mm - start.y
+    let order = stories
+    if stories.len() > 1 and "image" in stories.first() {
+      // The head sticks to the first paragraph; with a drop cap that whole paragraph is unbreakable.
+      let first = stories.first()
+      let opening = if t.drop-lines > 0 { first-with-dropcap(t, first.body, t.drop-lines) } else { v(4 * t.body-size) }
+      let head = measure(block(width: col, { story-head(t, first, l, level: level); opening })).height
+      if head + t.body-size > room {
+        // Stories without a picture fill the strip below the lead (every column of it), then the rest.
+        let (front, rest, used) = ((), (), 0pt)
+        for s in stories {
+          if "image" not in s and used < t.columns * room {
+            front.push(s)
+            used += measure(block(width: col, story(t, s, l, level: level))).height
+          } else { rest.push(s) }
+        }
+        order = front + rest
+      }
+    }
+    for s in order { story(t, s, l, level: level) }
+  }
   balanced-flow(t.columns, 5mm)[
-    #for s in ed.at("stories", default: ()) { story(t, s, l, level: level) }
+    #stories
     #if ed.at("lead", default: none) == none and ed.at("stories", default: ()).len() == 0 {
       text(style: "italic", fill: t.muted, l.quiet-day)
     }

@@ -13,6 +13,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
+from eilkurier import images
 from eilkurier.db import Article, CalendarEvent, Source, SourceKind, Status
 from eilkurier.http import HostThrottle
 from eilkurier.settings import Settings
@@ -119,8 +120,14 @@ def _collect_rss(
         if not guid or not title:
             continue
         teaser = strip_html(entry.get("summary") or entry.get("description") or "")
+        picture = images.from_feed(entry, link) if images.wants_feed(source.image_mode) else None
+        look_on_page = images.wants_page(source.image_mode) and bool(link)
         rows.append(
             {
+                "image_url": picture.url[:2000] if picture else None,
+                "image_alt": picture.alt if picture else None,
+                "image_credit": picture.credit if picture else None,
+                "image_status": Status.PENDING if (picture or look_on_page) else Status.SKIPPED,
                 "source_id": source.id,
                 "guid": guid[:1000],
                 "url": link,
@@ -212,6 +219,12 @@ def fetch_fulltexts(session: Session, http: httpx.Client, settings: Settings, th
         except httpx.HTTPError as exc:
             log.info("fulltext failed for %s: %s", article.url, exc)
             text = None
+        else:
+            # The page is loaded anyway: its preview picture is usually larger than the feed's.
+            if images.wants_page(article.source.image_mode):
+                images.apply(article, images.from_page(response.content, str(response.url)))
+                if not article.image_url:
+                    article.image_status = Status.SKIPPED
         if text:
             article.fulltext = text
             article.fulltext_status = Status.DONE

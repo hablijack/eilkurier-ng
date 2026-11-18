@@ -13,4 +13,9 @@ def load_catalog() -> dict[str, list[dict[str, Any]]]:
 
 def source_fields(entry: dict[str, Any]) -> dict[str, str]:
     """The columns a catalog entry becomes when it is added as a `Source`."""
-    return {"name": entry["name"], "url": entry["url"], "category": entry["category"]}
+    return {
+        "name": entry["name"],
+        "url": entry["url"],
+        "category": entry["category"],
+        "image_mode": entry.get("images", "auto"),
+    }
