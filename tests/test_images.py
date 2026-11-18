@@ -251,3 +251,22 @@ def test_purge_keeps_pictures_in_use(session, settings) -> None:
     images.purge_old(session, settings, datetime.now(UTC))
     session.flush()
     assert [i.url for i in session.scalars(select(Image))] == ["https://img.example.org/used.jpg"]
+
+
+def test_upgrade_backfills_sources_and_recent_articles(engine, session) -> None:
+    """Installations from before 0.3.0: catalog picture settings and a second chance for recent articles."""
+    from alembic import command
+
+    from eilkurier.migrate import alembic_config
+
+    heise = add_source(session, name="heise", url="https://www.heise.de/rss/heise-atom.xml")
+    own = add_source(session, name="Eigene", url="https://example.org/own.rss")
+    recent = add_article(session, own, "Neu", hours_ago=2)
+    old = add_article(session, own, "Alt", hours_ago=48)
+    session.commit()
+    config = alembic_config(engine.url.render_as_string(hide_password=False))
+    command.downgrade(config, "0004")
+    command.upgrade(config, "head")
+    session.expire_all()
+    assert (heise.image_mode, own.image_mode) == ("page", "auto")
+    assert (recent.image_status, old.image_status) == ("pending", "skipped")

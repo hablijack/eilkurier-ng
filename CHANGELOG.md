@@ -9,6 +9,12 @@ Ein Release entsteht mit `scripts/release.py X.Y.Z` (siehe README, Abschnitt „
 
 ## [Unreleased]
 
+### Behoben
+
+- Bestehende Installationen bekommen Bilder: Quellen aus dem Katalog, die vor 0.3.0 angelegt wurden, übernehmen
+  die gemessene Bild-Einstellung, und Artikel der letzten 36 Stunden suchen nachträglich ihr Seitenbild
+  (Migration `0005`).
+
 ## [0.3.0] – 2026-11-18
 
 ### Neu
