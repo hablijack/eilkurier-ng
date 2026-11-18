@@ -9,8 +9,8 @@ und setzt für jede Person eine eigene **Zeitungsausgabe als PDF**: mit Titelkop
 Terminen, Leserbriefen und QR-Codes zu den Originalquellen. Zugestellt wird per Telegram oder E-Mail, zu der
 Zeit und an den Tagen, die jede Person selbst wählt.
 
-Alles läuft im Heimnetz: der Dienst in Containern auf einem Raspberry Pi, das Sprachmodell (Gemma 3 4B) und
-die Embeddings (EmbeddingGemma) mit Ollama auf einem NVIDIA Jetson Orin Nano. Cloud-Dienste sind nicht nötig.
+Alles läuft im Heimnetz: der Dienst in Containern auf einem Raspberry Pi, das Sprachmodell (Qwen3.5-9B) und
+die Embeddings (EmbeddingGemma) mit llama.cpp auf einem NVIDIA Jetson Orin Nano. Cloud-Dienste sind nicht nötig.
 Ist das Modell gerade nicht erreichbar, erscheint die Zeitung trotzdem; die Texte sind dann Auszüge.
 
 Details: [Architektur & Fahrplan](docs/architektur.md).
@@ -23,12 +23,8 @@ docker compose up -d      # postgres → migrate → app + worker
 # Weboberfläche: http://<pi>:8080
 ```
 
-Auf dem Jetson:
-
-```bash
-OLLAMA_HOST=0.0.0.0 OLLAMA_CONTEXT_LENGTH=8192 ollama serve
-ollama pull gemma3:4b && ollama pull embeddinggemma
-```
+Auf dem Jetson läuft `llama-server` (llama.cpp) als Compose-Dienst. Einrichtung, Modelle und Messwerte:
+[deploy/jetson/README.md](deploy/jetson/README.md).
 
 Ohne Sprachmodell-Hardware, mit simuliertem Modell und Beispielhaushalt:
 

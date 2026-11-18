@@ -1,0 +1,24 @@
+# llama.cpp server for Eilkurier on the Jetson Orin Nano (JetPack 7.2, CUDA 13.2).
+# Start/stop: docker compose -f /ssd/llama.cpp/compose.yaml up -d | down
+# Image: llama.cpp v1.0.0 (.devops/cuda.Dockerfile, CUDA 13.2.1, sm_87) + Dockerfile.jetson (compat libs removed).
+name: llama-cpp
+services:
+  llama:
+    image: llama.cpp-server:v1.0.0-cu132-jetson
+    pull_policy: never
+    runtime: nvidia
+    restart: unless-stopped
+    command: ["--models-preset", "/config/models.ini", "--models-max", "2", "--host", "0.0.0.0", "--port", "8080"]
+    ports: ["8080:8080"]
+    volumes:
+      - /ssd/llama.cpp/models:/models:ro
+      - /ssd/llama.cpp/models.ini:/config/models.ini:ro
+    environment:
+      LLAMA_CACHE: /tmp/llama-cache
+    read_only: true
+    tmpfs: [/tmp]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 120s

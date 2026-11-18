@@ -1,4 +1,4 @@
-"""OpenAI-compatible client for the language model: Ollama on the Jetson, vLLM on captiva, or the simulator.
+"""OpenAI-compatible client for the language model: llama.cpp on the Jetson, vLLM on captiva or the simulator.
 
 One request at a time, temperature 0, strict JSON-schema output. The model is often unreachable (powered off,
 busy); that is reported as `Unavailable` and the work simply waits.
@@ -63,7 +63,7 @@ class LLM:
             self._available = False
             return False
         wanted = {self.model} | ({self.embedding_model} if self.embedding_model else set())
-        # Ollama lists "gemma3:4b" but also accepts "gemma3" (= ":latest"); compare loosely.
+        # Ollama-style servers list "gemma3:4b" but also accept "gemma3" (= ":latest"); compare loosely.
         missing = {w for w in wanted if w not in served and f"{w}:latest" not in served}
         if missing:
             log.warning("model(s) not served: %s (served: %s)", missing, sorted(served))

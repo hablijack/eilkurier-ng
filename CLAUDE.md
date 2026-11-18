@@ -40,7 +40,9 @@ After changing the API: `uv run eilkurier openapi > frontend/openapi.json && (cd
   → `edition.py` (per-reader selection without LLM, compose edition JSON) → `render.py` → `deliver.py`
   (Telegram sendDocument / SMTP; bot link codes and letters via getUpdates).
 - **The LLM is usually unavailable, and the design must treat that as normal.** Target: Jetson Orin Nano with
-  Ollama (`gemma3:4b`, embeddings `embeddinggemma`). Work queues until `GET /v1/models` answers. Editions are
+  llama.cpp `llama-server` in router mode, one port (`qwen3.5-9b` IQ4_XS, embeddings `embeddinggemma`;
+  setup in `deploy/jetson/`, thinking disabled server-side). Work queues until `GET /v1/models` answers.
+  Editions are
   never delayed: un-enriched articles are typeset extractively and flagged `excerpt`. Strict `json_schema`
   response format, `finish_reason == "stop"`, 429/502/503/504 and transport errors mean "retry later". Numbers
   in LLM output must occur in the source text (`validate_enrichment`). Tests and the demo use the simulator.

@@ -34,9 +34,9 @@ class Settings(BaseSettings):
     household_pin: str = ""
     secret_key: str = Field(default="dev-only-change-me", min_length=8)
 
-    # --- language model (OpenAI-compatible: Ollama on the Jetson, vLLM on captiva, or the simulator)
-    llm_url: str = ""  # e.g. http://jetson.fritz.box:11434 ; empty = no LLM, editions are extractive
-    llm_model: str = "gemma3:4b"
+    # --- language model (OpenAI-compatible: llama.cpp on the Jetson, vLLM on captiva, or the simulator)
+    llm_url: str = ""  # e.g. http://jetson.fritz.box:8080 ; empty = no LLM, editions are extractive
+    llm_model: str = "qwen3.5-9b"
     llm_api_key: str = ""
     llm_timeout_seconds: float = 300.0
     # Extra JSON merged into every chat request, e.g. {"chat_template_kwargs": {"enable_thinking": false}}

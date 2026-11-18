@@ -12,7 +12,7 @@ auf Wunsch auch ausgedruckt.
 | Thema | Entscheidung |
 |---|---|
 | Betrieb | Docker Compose auf einem Raspberry Pi (arm64, 8 GB RAM, openmediavault 8). Der Pi ist bereits ausgelastet (Load ≈ 3): sparsam bleiben. Auf dem Pi laufen **keine** Modelle. |
-| KI | Ziel: **Jetson Orin Nano 8 GB** mit **Ollama**: Sprachmodell **Gemma 3 4B** (`gemma3:4b`), Embeddings **EmbeddingGemma** (`embeddinggemma`). Zum Ausprobieren optional **captiva** (vLLM, Qwen3.8 27B); captiva zieht mit der 32-GB-Karte rund 800 W und läuft deshalb nicht dauerhaft. Für Entwicklung und Vorführung gibt es einen **Simulator** ohne GPU. |
+| KI | **Jetson Orin Nano 8 GB** mit **llama.cpp** (`llama-server`, Router-Modus, ein Port): Sprachmodell **Qwen3.5-9B** (IQ4_XS, `qwen3.5-9b`), Embeddings **EmbeddingGemma** (`embeddinggemma`). Zum Ausprobieren optional **captiva** (vLLM, Qwen3.8 27B); captiva zieht mit der 32-GB-Karte rund 800 W und läuft deshalb nicht dauerhaft. Für Entwicklung und Vorführung gibt es einen **Simulator** ohne GPU. |
 | Zugriff | Nur Heimnetz. Optional eine Haushalts-PIN für die Weboberfläche. |
 | Leser | 6 Personen, jede mit eigenen Interessen, eigenem Stil, eigener Zustellzeit, eigenen Wochentagen und eigenem Kanal. |
 | Code & Images | GitHub (`eilkurier-ng`), CircleCI, Docker Hub öffentlich (`hablijack/eilkurier-ng`, arm64 + amd64). |
@@ -32,7 +32,7 @@ auf Wunsch auch ausgedruckt.
                     │  migrate  (einmalig beim Start)                                │
                     └───────────────────────────────┼────────────────────────────────┘
                                                     ▼ (wenn erreichbar)
-                     Jetson: Ollama, Gemma 3 4B + EmbeddingGemma
+                     Jetson: llama.cpp, Qwen3.5-9B + EmbeddingGemma
                      (zum Ausprobieren: captiva/vLLM · Entwicklung: Simulator)
 ```
 
@@ -62,15 +62,19 @@ auf Wunsch auch ausgedruckt.
 | 6. Setzen | Ausgabe-JSON → Typst → PDF (PDF/UA-1); die Weboberfläche zeigt dasselbe JSON als barrierefreie HTML-Fassung | Pi | vor jeder Ausgabe |
 | 7. Zustellen | Telegram-Bot oder SMTP zur gewünschten Uhrzeit an den gewählten Wochentagen, mit Wiederholungen | Pi | je Leser |
 
-Die teure LLM-Arbeit fällt **einmal pro Artikel** an, nicht pro Leser. Ein 4B-Modell schafft das für eine
-Familie bequem; captiva ist nur für Vergleiche nötig.
+Die teure LLM-Arbeit fällt **einmal pro Artikel** an, nicht pro Leser. Qwen3.5-9B braucht auf dem Jetson rund
+20–30 Sekunden pro Artikel (etwa 150 pro Stunde); captiva ist nur für Vergleiche nötig.
 
 ## KI-Modelle
 
-- **Sprachmodell:** Gemma 3 4B über Ollama auf dem Jetson. Die Aufgaben sind klein und eng gefasst, mit
-  Quelltext im Kontext (höchstens 6000 Zeichen) und strikter JSON-Schema-Ausgabe; `finish_reason` muss `stop`
-  sein. Ollama braucht `OLLAMA_CONTEXT_LENGTH=8192`, sonst werden lange Artikel abgeschnitten.
-- **Embeddings:** EmbeddingGemma, ebenfalls auf dem Jetson, in pgvector gespeichert. Ohne Embedding-Modell
+- **Sprachmodell:** Qwen3.5-9B (IQ4_XS) über llama.cpp auf dem Jetson, Denkmodus im Server aus. Die Aufgaben
+  sind klein und eng gefasst, mit Quelltext im Kontext (höchstens 6000 Zeichen) und strikter
+  JSON-Schema-Ausgabe; `finish_reason` muss `stop` sein. Gewählt nach einem Vergleich an 15 echten Artikeln
+  mit Gemma 3 4B und Qwen3.5-4B (am genauesten bei Zahlen und Namen, alle Antworten gültig, unterscheidet die
+  Wichtigkeit). Ollama und vLLM scheiden aus: Ollama nutzt unter JetPack 7.2 die GPU nicht, vLLM braucht zu viel
+  des gemeinsamen 8-GB-Speichers. Einrichtung und Messwerte: `deploy/jetson/README.md`.
+- **Embeddings:** EmbeddingGemma, ebenfalls auf dem Jetson (auf der CPU, spart Speicher), in pgvector
+  gespeichert. Ohne Embedding-Modell
   (z. B. mit captiva) ordnet Eilkurier Geschichten über Themen-Überlappung vor.
 - **captiva (optional):** vLLM mit Qwen3.8 27B, `http://captiva.fritz.box:8080` (immer voll qualifiziert),
   Denkmodus aus über `EILKURIER_LLM_EXTRA_BODY={"chat_template_kwargs":{"enable_thinking":false}}`. captiva wird
@@ -133,6 +137,6 @@ HTML-Fassung kennen nur dieses Format. Referenz ist [`layout/sample/edition.json
 3. **Meilenstein 2 – Reporter** ✅ Geschichten und „Was bisher geschah“, Auswahl nach Interessen, Simulator.
 4. **Meilenstein 3 – Familie** ✅ Weboberfläche (Leser, Stil, Zustellung, Interessen, Quellen, Archiv,
    HTML-Fassung, Leserbriefe, Systemstatus), Haushalts-PIN, Telegram-Verknüpfung.
-5. **Als Nächstes:** Inbetriebnahme auf Pi und Jetson; Prompts mit Gemma 3 4B an echten Artikeln
-   nachschärfen (Maßstab: Probelauf mit Qwen3.8 auf captiva).
+5. **Als Nächstes:** Inbetriebnahme auf dem Pi (Jetson-Dienst läuft); Prompts mit Qwen3.5-9B an echten
+   Artikeln nachschärfen (Maßstab: Probelauf mit Qwen3.8 auf captiva).
 6. **Danach:** weitere Quellen (siehe oben), Bilder (serverseitig in Graustufen/Sepia), Wochenendausgabe.

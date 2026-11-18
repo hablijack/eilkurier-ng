@@ -18,7 +18,7 @@ from eilkurier.settings import Settings
 log = logging.getLogger(__name__)
 
 MAX_ATTEMPTS = 3
-MAX_INPUT_CHARS = 6000  # ~1.5k tokens: fits small context windows (Ollama default) with room for the answer
+MAX_INPUT_CHARS = 6000  # ~1.7k tokens: fits the 4096-token context on the Jetson with room for the answer
 STORY_CANDIDATES = 5
 
 ENRICH_SCHEMA: dict[str, Any] = {

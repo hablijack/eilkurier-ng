@@ -1,4 +1,4 @@
-"""A stand-in for the language model server (OpenAI-compatible, like Ollama/vLLM).
+"""A stand-in for the language model server (OpenAI-compatible, like llama.cpp/vLLM).
 
 It answers deterministically from the article text itself: extractive "summaries", keyword topics and
 bag-of-words embeddings. Good enough to develop, test and demo the whole pipeline without a GPU.
@@ -189,7 +189,7 @@ def _story(user: str) -> dict[str, Any]:
 
 
 def create_app(models: list[str] | None = None) -> FastAPI:
-    served = models or ["gemma3:4b", "embeddinggemma", "qwen3.8"]
+    served = models or ["qwen3.5-9b", "gemma3:4b", "embeddinggemma", "qwen3.8"]
     app = FastAPI(title="Eilkurier LLM simulator")
 
     @app.get("/v1/models")

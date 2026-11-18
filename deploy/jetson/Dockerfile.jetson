@@ -1,0 +1,4 @@
+# Jetson (JetPack 7.2, Orin): drop the dGPU CUDA forward-compat driver libs from nvidia/cuda.
+# They are not needed (host driver is already CUDA 13.2) and crash nvidia-cdi-hook cudacompat (toolkit 1.19.1).
+FROM llama.cpp-server:v1.0.0-cu132
+RUN rm -rf /usr/local/cuda/compat /usr/local/cuda-13.2/compat /usr/local/cuda-13.2/compat_orin
